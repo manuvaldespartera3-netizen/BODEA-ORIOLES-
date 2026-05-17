@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Bodega Orioles</title>
+  <link rel="manifest" href="./manifest.json"/>
+  <meta name="theme-color" content="#0D0D0D"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="Orioles"/>
+  <link rel="apple-touch-icon" href="./icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Crimson+Pro:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#0D0D0D;--bg2:#111;--sur:#1A1A1A;
+      --gold:#E8A820;--gold2:#F0B429;
+      --g10:rgba(232,168,32,.10);--g20:rgba(232,168,32,.20);
+      --g35:rgba(232,168,32,.35);--g50:rgba(232,168,32,.50);
+      --tx:#F0EAD6;--tx2:rgba(240,234,214,.55);--tx3:rgba(240,234,214,.28);
+      --br:rgba(232,168,32,.18);--br2:rgba(255,255,255,.06);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Montserrat',sans-serif}
+    #root{min-height:100vh}
+    ::-webkit-scrollbar{width:3px;height:3px}
+    ::-webkit-scrollbar-thumb{background:var(--g20);border-radius:2px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .fade{animation:fadeUp .28s ease forwards}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+    .blink{animation:blink 2s infinite}
+    .tb{background:transparent;border:1px solid transparent;border-radius:5px;padding:7px 11px;color:var(--tx2);cursor:pointer;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:all .2s}
+    .tb:hover,.tb.a{background:var(--g10)}
+    .tb.a{border-color:var(--g35);color:var(--gold)}
+    .bg{background:var(--gold);color:#0D0D0D;border:none;border-radius:5px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .bg:hover{background:var(--gold2)}
+    .bo{background:transparent;color:var(--tx2);border:1px solid var(--br2);border-radius:5px;padding:7px 13px;font-family:'Montserrat',sans-serif;font-size:10px;cursor:pointer;transition:all .2s}
+    .bo:hover{border-color:var(--g20);color:var(--tx)}
+    .be{background:var(--g10);color:var(--gold);border:1px solid var(--g20);border-radius:5px;padding:5px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer}
+    .bd{background:rgba(180,40,40,.12);color:rgba(220,80,80,.8);border:1px solid rgba(180,40,40,.25);border-radius:5px;padding:5px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer}
+    .card{transition:border-color .2s,transform .15s}
+    .card:hover{border-color:var(--g35)!important;transform:translateY(-1px)}
+    .vc{cursor:pointer}
+    .vc.op{border-color:var(--g50)!important;border-radius:7px 7px 0 0!important}
+    .sdot{cursor:pointer;transition:transform .15s}
+    .sdot:hover{transform:scale(1.07)}
+    input,textarea,select{background:var(--sur);border:1px solid rgba(232,168,32,.2);border-radius:5px;padding:8px 11px;color:var(--tx);font-family:'Montserrat',sans-serif;font-size:12px;outline:none;width:100%;transition:border-color .2s}
+    input::placeholder,textarea::placeholder{color:var(--tx3)}
+    input:focus,textarea:focus,select:focus{border-color:var(--g50)}
+    textarea{resize:vertical;line-height:1.6}
+    select option{background:#1a1a1a}
+    .editable{border-bottom:1px dashed rgba(232,168,32,.3);cursor:pointer}
+    #ib{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--g35);border-radius:9px;padding:12px 16px;align-items:center;gap:10px;font-size:11px;color:var(--tx);z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.7);max-width:340px;width:calc(100% - 32px)}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<div id="ib">
+  <span style="font-family:Montserrat,sans-serif">📲 Instala Bodega Orioles</span>
+  <button class="bg" id="ibb" style="padding:6px 12px;font-size:9px;flex-shrink:0">Instalar</button>
+  <button class="bo" id="ibc" style="padding:6px 9px;flex-shrink:0">✕</button>
+</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ─── Logo: 7 pájaros exactos de la etiqueta ─────────────────────── */
+function OriLogo({ size = 48 }) {
+  const g = "#E8A820";
+  return (
+    <svg width={size} height={size * 1.83} viewBox="0 0 60 110" fill="none">
+      <polygon points="30,0 34,4 30,8 26,4" fill={g}/>
+      <polygon points="13,10 47,10 30,28" fill={g}/>
+      <polygon points="8,31 12,35 8,39 4,35" fill={g}/>
+      <polygon points="52,31 56,35 52,39 48,35" fill={g}/>
+      <polygon points="3,41 23,41 13,56" fill={g}/>
+      <polygon points="37,41 57,41 47,56" fill={g}/>
+      <polygon points="8,58 12,62 8,66 4,62" fill={g}/>
+      <polygon points="52,58 56,62 52,66 48,62" fill={g}/>
+      <polygon points="3,68 23,68 13,82" fill={g}/>
+      <polygon points="37,68 57,68 47,82" fill={g}/>
+      <polygon points="8,84 12,88 8,92 4,88" fill={g}/>
+      <polygon points="52,84 56,88 52,92 48,88" fill={g}/>
+      <polygon points="4,94 22,94 13,106" fill={g}/>
+      <polygon points="38,94 56,94 47,106" fill={g}/>
+      <polygon points="8,108 11,111 8,114 5,111" fill={g}/>
+      <polygon points="52,108 55,111 52,114 49,111" fill={g}/>
+    </svg>
+  );
+}
+
+/* ─── Datos iniciales ─────────────────────────────────────────────── */
+const SOCIOS_DEF = [
+  { id:1, nombre:"Manuel",   apodo:"(Padre)", rol:"Socio fundador" },
+  { id:2, nombre:"Manuel",   apodo:"(Hijo)",  rol:"Socio" },
+  { id:3, nombre:"Gabriel",  apodo:"",        rol:"Socio" },
+  { id:4, nombre:"Antonio",  apodo:"",        rol:"Socio" },
+  { id:5, nombre:"Héctor",   apodo:"",        rol:"Socio" },
+  { id:6, nombre:"Cristina", apodo:"",        rol:"Socia" },
+];
+
+const FAENAS_DEF = [
+  { id:10,  nombre:"Poda",                     emoji:"✂️",  mes:"Enero",    dia:"", desc:"Poda de invierno. Eliminación de sarmientos del año anterior dejando las yemas necesarias para la próxima cosecha." },
+  { id:20,  nombre:"Atado",                    emoji:"🪢",  mes:"Febrero",  dia:"", desc:"Atado de los sarmientos podados sobre los alambres de la espaldera para guiar el crecimiento del pámpano." },
+  { id:30,  nombre:"Embotellado",              emoji:"🍾",  mes:"Marzo",    dia:"", desc:"Embotellado del vino del año anterior. Filtrado, llenado, corcho, capsulado y etiquetado de cada botella." },
+  { id:40,  nombre:"Limpieza de Bodega",       emoji:"🧹",  mes:"Marzo",    dia:"", desc:"Limpieza general de la bodega: toneles, depósitos, mangueras, prensas y todo el utillaje." },
+  { id:50,  nombre:"Tratamiento Fitosanitario",emoji:"💧",  mes:"Mayo",     dia:"", desc:"Aplicación preventiva de azufre y cobre contra mildiu y oídio. Fundamental para proteger la cosecha." },
+  { id:60,  nombre:"Desbrotado",               emoji:"🌿",  mes:"Mayo",     dia:"", desc:"Eliminación de brotes no productivos para concentrar la savia en los racimos principales." },
+  { id:70,  nombre:"Deshojado",                emoji:"🍃",  mes:"Julio",    dia:"", desc:"Eliminación de hojas alrededor del racimo para favorecer la aireación y maduración de la uva." },
+  { id:80,  nombre:"Aclareo de racimos",       emoji:"🍇",  mes:"Agosto",   dia:"", desc:"Eliminación de racimos en exceso para concentrar azúcar y sabor en los que quedan." },
+  { id:90,  nombre:"Vendimia",                 emoji:"🍇",  mes:"Octubre",  dia:"", desc:"Recogida manual de la uva. El momento más importante del año. Toda la familia junta en el campo." },
+  { id:100, nombre:"Prensado",                 emoji:"🔩",  mes:"Octubre",  dia:"", desc:"Despalillado, estrujado y prensado de la uva para obtener el mosto. Llenado de depósitos." },
+  { id:110, nombre:"Fermentación y Trasiegos", emoji:"🍷",  mes:"Noviembre",dia:"", desc:"Control de la fermentación alcohólica. Remontados diarios, control de temperatura y primer trasiego." },
+];
+
+const AÑOS = [2019,2020,2021,2022,2023,2024];
+const VENDIMIAS_DEF = AÑOS.map(a => ({
+  año:a, fecha:"", kg:0, litros:0, variedades:[], alcohol:0,
+  taninos:3, acidez:3, cuerpo:3, condiciones:"", notas:""
+}));
+const INV_DEF = AÑOS.map(a => ({ año:a, embotelladas:0, movimientos:[] }));
+
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MORD  = Object.fromEntries(MESES.map((m,i) => [m,i]));
+const NEXT  = { "":"si", si:"no", no:"quizas", quizas:"" };
+const AICON = { "":"❓", si:"✅", no:"❌", quizas:"🤔" };
+const ALBL  = { "":"Sin confirmar", si:"Sí asisto", no:"No asisto", quizas:"Quizás" };
+const ABRD  = { "":"rgba(255,255,255,.1)", si:"#2d7a3e", no:"#8b1a1a", quizas:"#8b6a00" };
+const TIPOS_MOV = [
+  { id:"consumo", label:"Consumo",  emoji:"🍷", color:"rgba(232,168,32,.9)" },
+  { id:"regalo",  label:"Regalo",   emoji:"🎁", color:"rgba(100,190,130,.9)" },
+  { id:"venta",   label:"Venta",    emoji:"💰", color:"rgba(100,160,220,.9)" },
+  { id:"merma",   label:"Merma",    emoji:"📉", color:"rgba(200,80,80,.9)" },
+  { id:"otro",    label:"Otro",     emoji:"📦", color:"rgba(180,180,180,.9)" },
+];
+
+function load(k, d) {
+  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }
+  catch { return d; }
+}
+function parseDate(s) {
+  if (!s) return null;
+  const p = s.split("/");
+  if (p.length !== 3) return null;
+  const [d,m,y] = p.map(Number);
+  if (!d||!m||!y) return null;
+  return new Date(y, m-1, d);
+}
+function fmtDate(d) {
+  if (!d) return "";
+  return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
+}
+function diasRestantes(s) {
+  const d = parseDate(s);
+  if (!d) return null;
+  const h = new Date(); h.setHours(0,0,0,0);
+  return Math.round((d - h) / 864e5);
+}
+
+/* ─── Helpers de UI ───────────────────────────────────────────────── */
+function InlineEdit({ value, onChange, style={}, placeholder="", multiline=false }) {
+  const [edit, setEdit] = useState(false);
+  const ref = useRef();
+  useEffect(() => { if (edit && ref.current) ref.current.focus(); }, [edit]);
+  if (edit) {
+    const shared = {
+      ref, value, placeholder,
+      onChange: e => onChange(e.target.value),
+      onBlur: () => setEdit(false),
+      onKeyDown: e => { if (!multiline && e.key === "Enter") setEdit(false); },
+      style: { ...style, background:"var(--sur)", border:"1px solid var(--g50)", borderRadius:4,
+        padding:"3px 8px", color:"var(--tx)", fontFamily:"inherit", fontSize:"inherit",
+        fontWeight:"inherit", letterSpacing:"inherit", outline:"none", width:"100%" }
+    };
+    return multiline ? <textarea rows={3} {...shared}/> : <input {...shared}/>;
+  }
+  return (
+    <span className="editable" style={style} onClick={() => setEdit(true)} title="Toca para editar">
+      {value || <span style={{color:"var(--tx3)"}}>{placeholder}</span>}
+    </span>
+  );
+}
+
+function Stars({ value, onChange }) {
+  return (
+    <div style={{display:"flex",gap:4,marginTop:4}}>
+      {[1,2,3,4,5].map(n => (
+        <button key={n} onClick={() => onChange(n)} style={{
+          flex:1, height:20, borderRadius:3, border:"none", cursor:"pointer",
+          background: n <= value ? "var(--gold)" : "rgba(232,168,32,.1)"
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+function Av({ nombre, size=44 }) {
+  return (
+    <div style={{width:size,height:size,borderRadius:"50%",background:"#111",
+      border:"1.5px solid var(--g35)",display:"flex",alignItems:"center",
+      justifyContent:"center",fontFamily:"Montserrat",fontSize:size*.4,
+      fontWeight:700,color:"var(--gold)",flexShrink:0}}>
+      {(nombre||"?").charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function SocioBotones({ fid, socios, asist, toggle }) {
+  return (
+    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+      {socios.map(sc => {
+        const st = asist[fid + "_" + sc.id] || "";
+        return (
+          <button key={sc.id} className="sdot"
+            title={(sc.nombre + (sc.apodo ? " "+sc.apodo : "")) + ": " + ALBL[st]}
+            style={{background:"var(--bg2)",border:"1.5px solid "+ABRD[st],
+              borderRadius:5,padding:"5px 9px",display:"flex",alignItems:"center",gap:5}}
+            onClick={() => toggle(fid, sc.id)}>
+            <span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:500,color:"var(--tx2)"}}>{sc.nombre}</span>
+            {sc.apodo && <span style={{fontSize:9,color:"var(--tx3)"}}>{sc.apodo}</span>}
+            <span style={{fontSize:13}}>{AICON[st]}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── APP ─────────────────────────────────────────────────────────── */
+function App() {
+  const [tab,     setTab]     = useState("inicio");
+  const [socios,  setSocios]  = useState(() => load("o5_s", SOCIOS_DEF));
+  const [vends,   setVends]   = useState(() => load("o5_v", VENDIMIAS_DEF));
+  const [faenas,  setFaenas]  = useState(() => load("o5_f", FAENAS_DEF));
+  const [asist,   setAsist]   = useState(() => load("o5_a", {}));
+  const [inv,     setInv]     = useState(() => load("o5_inv", INV_DEF));
+  const [bodega,  setBodega]  = useState(() => load("o5_b", "Bodega Orioles"));
+  const [lema,    setLema]    = useState(() => load("o5_l", "Quebracántaros · Valdejalón"));
+  const [openV,   setOpenV]   = useState(null);
+  const [openI,   setOpenI]   = useState(null);
+  const [addV,    setAddV]    = useState(false);
+  const [addS,    setAddS]    = useState(false);
+  const [addF,    setAddF]    = useState(false);
+  const [editFmes,setEditFmes]= useState(null);
+  const [addMov,  setAddMov]  = useState(null);
+  const [nV, setNV] = useState({año:"",fecha:"",kg:"",litros:"",variedades:"",alcohol:"",condiciones:"",notas:""});
+  const [nS, setNS] = useState({nombre:"",apodo:"",rol:""});
+  const [nF, setNF] = useState({nombre:"",emoji:"",mes:"Enero",desc:""});
+  const [nM, setNM] = useState({tipo:"consumo",cantidad:"",motivo:"",fecha:fmtDate(new Date()),socio:""});
+
+  useEffect(() => { localStorage.setItem("o5_s",   JSON.stringify(socios)); }, [socios]);
+  useEffect(() => { localStorage.setItem("o5_v",   JSON.stringify(vends));  }, [vends]);
+  useEffect(() => { localStorage.setItem("o5_f",   JSON.stringify(faenas)); }, [faenas]);
+  useEffect(() => { localStorage.setItem("o5_a",   JSON.stringify(asist));  }, [asist]);
+  useEffect(() => { localStorage.setItem("o5_inv", JSON.stringify(inv));    }, [inv]);
+  useEffect(() => { localStorage.setItem("o5_b",   JSON.stringify(bodega)); }, [bodega]);
+  useEffect(() => { localStorage.setItem("o5_l",   JSON.stringify(lema));   }, [lema]);
+
+  // Sync inventario when vendimias change
+  useEffect(() => {
+    setInv(prev => {
+      const existing = prev.map(x => x.año);
+      const nuevos = vends.filter(v => !existing.includes(v.año)).map(v => ({año:v.año,embotelladas:0,movimientos:[]}));
+      return nuevos.length ? [...prev,...nuevos].sort((a,b) => a.año-b.año) : prev;
+    });
+  }, [vends]);
+
+  const ga = (fid,sid) => asist[fid+"_"+sid] || "";
+  const ta = (fid,sid) => { const k=fid+"_"+sid; setAsist(p=>({...p,[k]:NEXT[p[k]||""]})); };
+  const sv = (yr,k,v) => setVends(p=>p.map(x=>x.año===yr?{...x,[k]:v}:x));
+  const sf = (id,k,v) => setFaenas(p=>p.map(x=>x.id===id?{...x,[k]:v}:x));
+  const ss = (id,k,v) => setSocios(p=>p.map(x=>x.id===id?{...x,[k]:v}:x));
+  const stockAño = yr => {
+    const r = inv.find(x=>x.año===yr);
+    if (!r) return 0;
+    return Math.max(0, r.embotelladas - r.movimientos.reduce((s,m)=>s+(+m.cantidad||0),0));
+  };
+
+  const conDatos  = vends.filter(v=>v.kg>0);
+  const totL      = conDatos.reduce((s,v)=>s+v.litros,0);
+  const totK      = conDatos.reduce((s,v)=>s+v.kg,0);
+  const maxL      = Math.max(...conDatos.map(v=>v.litros),1);
+  const mejor     = [...conDatos].sort((a,b)=>b.litros-a.litros)[0]||null;
+  const totBot    = inv.reduce((s,x)=>s+stockAño(x.año),0);
+  const fSort     = [...faenas].sort((a,b)=>MORD[a.mes]-MORD[b.mes]||a.id-b.id);
+
+  // Próximas 2 faenas
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const proximas = (() => {
+    const cf = fSort.map(f=>({...f,_d:parseDate(f.dia)}))
+                    .filter(f=>f._d&&f._d>=hoy)
+                    .sort((a,b)=>a._d-b._d);
+    if (cf.length >= 2) return cf.slice(0,2);
+    const sf2 = fSort.filter(f=>!parseDate(f.dia));
+    return [...cf,...sf2].slice(0,2);
+  })();
+
+  // ── Estilos base ──────────────────────────────────────────────────
+  const H2  = {fontFamily:"Montserrat",fontSize:18,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:"var(--tx)",marginBottom:4};
+  const H3  = {fontFamily:"Montserrat",fontSize:11,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--gold)",marginBottom:10};
+  const DSC = {fontSize:12,color:"var(--tx2)",lineHeight:1.7,marginBottom:16};
+  const C   = {background:"var(--sur)",border:"1px solid var(--br)",borderRadius:7,padding:14};
+  const DB  = {background:"#111",border:"1px solid var(--br)",borderTop:"none",borderRadius:"0 0 7px 7px",padding:"14px 14px 18px"};
+  const LB  = {fontSize:10,fontWeight:600,letterSpacing:".1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:4,display:"block"};
+  const TG  = {fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--gold)",padding:"3px 8px",borderRadius:4};
+  const MB  = {fontSize:9,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--gold)",padding:"3px 7px",borderRadius:4};
+
+  const TABS = [
+    {id:"inicio",l:"Inicio"},{id:"inventario",l:"Inventario"},
+    {id:"vendimias",l:"Vendimias"},{id:"faenas",l:"Faenas"},
+    {id:"socios",l:"Socios"},{id:"config",l:"Config"}
+  ];
+
+  // ══════════════════════════════════════════════════════════════════
+  // INICIO
+  // ══════════════════════════════════════════════════════════════════
+  function Inicio() {
+    return (
+      <div className="fade">
+        {/* Hero */}
+        <div style={{textAlign:"center",padding:"28px 0 24px",borderBottom:"1px solid var(--br2)",marginBottom:22}}>
+          <OriLogo size={62}/>
+          <h1 style={{fontFamily:"Montserrat",fontSize:26,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",marginTop:14,lineHeight:1}}>
+            {bodega}
+          </h1>
+          <p style={{fontFamily:"Montserrat",fontSize:10,fontWeight:500,letterSpacing:".18em",textTransform:"uppercase",color:"var(--tx2)",marginTop:6}}>{lema}</p>
+          <p style={{fontFamily:"Montserrat",fontSize:9,color:"var(--tx3)",marginTop:3,letterSpacing:".1em",textTransform:"uppercase"}}>{socios.length} socios · desde 2019</p>
+        </div>
+
+        {/* Stats */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:24}}>
+          {[
+            ["⚖️", totK>0 ? totK.toLocaleString()+"kg" : "—", "Uva"],
+            ["🍶", totL>0 ? totL.toLocaleString()+"L"  : "—", "Vino"],
+            ["🍾", totBot>0 ? String(totBot)           : "—", "Botellas"],
+            ["👥", String(socios.length),                      "Socios"],
+          ].map(([ic,v,l],i) => (
+            <div key={i} style={{...C,textAlign:"center",padding:"12px 6px"}}>
+              <p style={{fontSize:20,marginBottom:3}}>{ic}</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:19,color:"var(--gold)",lineHeight:1}}>{v}</p>
+              <p style={{fontSize:9,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:"var(--tx3)",marginTop:3}}>{l}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Próximas faenas */}
+        <p style={H3}>📅 Próximas faenas</p>
+        {proximas.length === 0
+          ? <div style={{...C,textAlign:"center",padding:20,marginBottom:22}}>
+              <p style={{fontSize:12,color:"var(--tx3)"}}>Sin fechas asignadas aún.</p>
+              <p style={{fontSize:11,color:"var(--tx3)",marginTop:4}}>Ve a Faenas y fija las fechas.</p>
+            </div>
+          : <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+              {proximas.map((f, idx) => {
+                const dias = diasRestantes(f.dia);
+                const conf = socios.filter(sc => ga(f.id, sc.id) === "si").length;
+                const [exp, setExp] = useState(false);
+                const diasColor = dias === null ? "var(--tx3)"
+                  : dias === 0 ? "rgba(255,220,50,.95)"
+                  : dias < 0  ? "rgba(200,80,80,.8)"
+                  : dias <= 7  ? "rgba(255,150,50,.9)"
+                  : dias <= 30 ? "var(--gold)"
+                  : "var(--tx3)";
+                return (
+                  <div key={f.id} style={{...C, border:"1px solid "+(idx===0?"var(--g35)":"var(--br)")}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
+                          {idx===0 && <span style={{...MB,background:"rgba(232,168,32,.2)"}} className="blink">PRÓXIMA</span>}
+                          <span style={{fontSize:18}}>{f.emoji}</span>
+                          <span style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,color:"var(--tx)"}}>{f.nombre}</span>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                          {f.dia
+                            ? <span style={{fontSize:11,color:"var(--gold)",fontWeight:600}}>📅 {f.dia}</span>
+                            : <span style={{fontSize:11,color:"var(--tx3)"}}>Sin fecha · {f.mes}</span>
+                          }
+                          {dias !== null && f.dia && (
+                            <span style={{fontSize:10,fontWeight:700,color:diasColor}}>
+                              {dias===0 ? "¡HOY!" : dias<0 ? "Hace "+Math.abs(dias)+"d" : dias===1 ? "Mañana" : "En "+dias+" días"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{textAlign:"center",background:"var(--g10)",border:"1px solid var(--g20)",borderRadius:5,padding:"7px 9px",flexShrink:0,minWidth:46}}>
+                        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{conf}</p>
+                        <p style={{fontSize:9,color:"var(--tx3)",fontWeight:600}}>/{socios.length} sí</p>
+                      </div>
+                    </div>
+
+                    {/* Botones de asistencia — directamente en portada */}
+                    <SocioBotones fid={f.id} socios={socios} asist={asist} toggle={ta}/>
+
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginTop:10}}>
+                      <p style={{fontSize:11,color:"var(--tx3)",lineHeight:1.5,flex:1,marginRight:8}}>
+                        {exp ? f.desc : f.desc.slice(0,60)+(f.desc.length>60?"…":"")}
+                      </p>
+                      <button className="be" style={{fontSize:9,flexShrink:0}} onClick={()=>setExp(!exp)}>
+                        {exp?"Menos":"Ver más"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+        }
+
+        {/* Gráfico producción */}
+        {conDatos.length > 0 && (
+          <>
+            <p style={H3}>Producción por año</p>
+            <div style={{...C,marginBottom:22}}>
+              {[...conDatos].sort((a,b)=>a.año-b.año).map(v => (
+                <div key={v.año} style={{display:"flex",alignItems:"center",gap:8,marginBottom:9}}>
+                  <span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:"var(--gold)",width:34,flexShrink:0}}>{v.año}</span>
+                  <div style={{flex:1,height:22,background:"rgba(255,255,255,.04)",borderRadius:4,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:((v.litros/maxL)*100)+"%",background:"linear-gradient(90deg,rgba(232,168,32,.5),var(--gold))",borderRadius:4,display:"flex",alignItems:"center",paddingLeft:7}}>
+                      <span style={{fontSize:10,fontWeight:700,color:"#0D0D0D"}}>{v.litros}L</span>
+                    </div>
+                  </div>
+                  <span style={{fontSize:10,color:"var(--tx3)",width:46,textAlign:"right",flexShrink:0}}>{v.kg}kg</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Socios */}
+        <p style={H3}>Los socios</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
+          {socios.map(sc => (
+            <div key={sc.id} style={{display:"flex",alignItems:"center",gap:8,...C,padding:"9px 13px",flex:"1 1 auto",minWidth:130}}>
+              <Av nombre={sc.nombre} size={34}/>
+              <div>
+                <p style={{fontFamily:"Montserrat",fontSize:13,fontWeight:600,color:"var(--tx)"}}>{sc.nombre}{sc.apodo?" "+sc.apodo:""}</p>
+                <p style={{fontSize:10,color:"var(--gold)",textTransform:"uppercase",letterSpacing:".06em"}}>{sc.rol}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // INVENTARIO
+  // ══════════════════════════════════════════════════════════════════
+  function Inventario() {
+    const totEmb = inv.reduce((s,x)=>s+x.embotelladas,0);
+    const totSal = inv.reduce((s,x)=>s+x.movimientos.reduce((ss,m)=>ss+(+m.cantidad||0),0),0);
+    return (
+      <div className="fade">
+        <h2 style={H2}>Inventario</h2>
+        <p style={DSC}>Control de botellas por añada · Toca una añada para gestionar</p>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:22}}>
+          {[["🍾",totEmb,"Embotelladas"],["📤",totSal,"Salidas"],["✅",totBot,"En bodega"]].map(([ic,v,l])=>(
+            <div key={l} style={{...C,textAlign:"center",padding:"12px 8px"}}>
+              <p style={{fontSize:22,marginBottom:3}}>{ic}</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{v}</p>
+              <p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)",marginTop:3}}>{l}</p>
+            </div>
+          ))}
+        </div>
+
+        {[...inv].sort((a,b)=>b.año-a.año).map(row => {
+          const stk = stockAño(row.año);
+          const pct = row.embotelladas > 0 ? Math.round((stk/row.embotelladas)*100) : 0;
+          const isO = openI === row.año;
+          return (
+            <div key={row.año} style={{marginBottom:isO?0:8}}>
+              <div className={"vc card "+(isO?"op":"")} style={{...C}} onClick={()=>setOpenI(isO?null:row.año)}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontFamily:"'Crimson Pro',serif",fontSize:30,color:"var(--gold)",lineHeight:1}}>{row.año}</span>
+                    {row.embotelladas===0 && <span style={{fontSize:10,color:"var(--tx3)"}}>Sin datos</span>}
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--tx)"}}>{stk} <span style={{fontSize:12,color:"var(--tx2)"}}>bots.</span></p>
+                    <p style={{fontSize:10,color:"var(--tx3)"}}>de {row.embotelladas} embotelladas</p>
+                  </div>
+                </div>
+                {row.embotelladas>0 && (
+                  <div style={{height:6,background:"rgba(255,255,255,.06)",borderRadius:3,overflow:"hidden",marginBottom:4}}>
+                    <div style={{height:"100%",width:pct+"%",background:"linear-gradient(90deg,rgba(232,168,32,.4),var(--gold))",borderRadius:3}}/>
+                  </div>
+                )}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    {TIPOS_MOV.map(t=>{
+                      const n=row.movimientos.filter(m=>m.tipo===t.id).reduce((s,m)=>s+(+m.cantidad||0),0);
+                      return n>0?<span key={t.id} style={{fontSize:9,color:t.color,fontWeight:600}}>{t.emoji} {n} {t.label.toLowerCase()}</span>:null;
+                    })}
+                  </div>
+                  <span style={{fontSize:10,color:"var(--gold)"}}>{isO?"▲ Cerrar":"▼ Gestionar"}</span>
+                </div>
+              </div>
+
+              {isO && (
+                <div style={DB}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,paddingBottom:14,borderBottom:"1px solid var(--br2)"}}>
+                    <div style={{flex:1}}>
+                      <span style={LB}>Botellas embotelladas esta añada</span>
+                      <input type="number" value={row.embotelladas||""} placeholder="Ej: 300"
+                        onChange={e=>setInv(p=>p.map(x=>x.año===row.año?{...x,embotelladas:+e.target.value}:x))}/>
+                    </div>
+                    <div style={{textAlign:"center",flexShrink:0}}>
+                      <p style={{fontSize:9,fontWeight:600,textTransform:"uppercase",color:"var(--tx3)",marginBottom:3}}>Stock actual</p>
+                      <p style={{fontFamily:"'Crimson Pro',serif",fontSize:32,color:stk>0?"var(--gold)":"rgba(220,80,80,.8)",lineHeight:1}}>{stk}</p>
+                      <p style={{fontSize:9,color:"var(--tx3)"}}>botellas</p>
+                    </div>
+                  </div>
+
+                  {row.movimientos.length>0 && (
+                    <div style={{marginBottom:14}}>
+                      <p style={{...H3,marginBottom:8}}>Movimientos registrados</p>
+                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                        {[...row.movimientos].sort((a,b)=>b.id-a.id).map(m=>{
+                          const t=TIPOS_MOV.find(x=>x.id===m.tipo)||TIPOS_MOV[0];
+                          return (
+                            <div key={m.id} style={{background:"var(--bg2)",border:"1px solid var(--br2)",borderRadius:5,padding:"9px 11px",display:"flex",alignItems:"center",gap:8}}>
+                              <span style={{fontSize:16,flexShrink:0}}>{t.emoji}</span>
+                              <div style={{flex:1}}>
+                                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:2}}>
+                                  <span style={{fontSize:11,fontWeight:600,color:t.color}}>{t.label}</span>
+                                  <span style={{fontSize:12,fontWeight:700,color:"var(--tx)"}}>{m.cantidad} botellas</span>
+                                  {m.socio&&<span style={{fontSize:10,color:"var(--tx3)"}}>· {m.socio}</span>}
+                                  {m.fecha&&<span style={{fontSize:10,color:"var(--tx3)"}}>· {m.fecha}</span>}
+                                </div>
+                                {m.motivo&&<p style={{fontSize:11,color:"var(--tx2)"}}>{m.motivo}</p>}
+                              </div>
+                              <button className="bd" style={{padding:"3px 8px",fontSize:10,flexShrink:0}}
+                                onClick={()=>setInv(p=>p.map(x=>x.año===row.año?{...x,movimientos:x.movimientos.filter(mm=>mm.id!==m.id)}:x))}>✕</button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {addMov===row.año
+                    ? <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12}}>
+                        <p style={{...H3,marginBottom:10}}>Nuevo movimiento</p>
+                        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+                          {TIPOS_MOV.map(t=>(
+                            <button key={t.id}
+                              style={{background:nM.tipo===t.id?"var(--g20)":"transparent",border:"1px solid "+(nM.tipo===t.id?"var(--g50)":"var(--br2)"),borderRadius:5,padding:"5px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}
+                              onClick={()=>setNM(p=>({...p,tipo:t.id}))}>
+                              <span style={{fontSize:14}}>{t.emoji}</span>
+                              <span style={{fontFamily:"Montserrat",fontSize:10,fontWeight:600,color:nM.tipo===t.id?t.color:"var(--tx2)"}}>{t.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                          <div><span style={LB}>Botellas</span><input type="number" placeholder="Ej: 12" value={nM.cantidad} onChange={e=>setNM(p=>({...p,cantidad:e.target.value}))}/></div>
+                          <div><span style={LB}>Fecha</span><input placeholder="dd/mm/aaaa" value={nM.fecha} onChange={e=>setNM(p=>({...p,fecha:e.target.value}))}/></div>
+                        </div>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                          <div><span style={LB}>Motivo</span><input placeholder="Cena familiar, regalo…" value={nM.motivo} onChange={e=>setNM(p=>({...p,motivo:e.target.value}))}/></div>
+                          <div><span style={LB}>Socio</span>
+                            <select value={nM.socio} onChange={e=>setNM(p=>({...p,socio:e.target.value}))}>
+                              <option value="">Todos / General</option>
+                              {socios.map(s=><option key={s.id} value={s.nombre+(s.apodo?" "+s.apodo:"")}>{s.nombre}{s.apodo?" "+s.apodo:""}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",gap:8}}>
+                          <button className="bg" onClick={()=>{
+                            if(!nM.cantidad)return;
+                            setInv(p=>p.map(x=>x.año===row.año?{...x,movimientos:[...x.movimientos,{id:Date.now(),...nM}]}:x));
+                            setNM({tipo:"consumo",cantidad:"",motivo:"",fecha:fmtDate(new Date()),socio:""});
+                            setAddMov(null);
+                          }}>Guardar</button>
+                          <button className="bo" onClick={()=>setAddMov(null)}>Cancelar</button>
+                        </div>
+                      </div>
+                    : <button className="bg" style={{width:"100%",padding:10}} onClick={()=>setAddMov(row.año)}>
+                        + Registrar movimiento
+                      </button>
+                  }
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // VENDIMIAS
+  // ══════════════════════════════════════════════════════════════════
+  function Vendimias() {
+    return (
+      <div className="fade">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,flexWrap:"wrap",gap:8}}>
+          <div><h2 style={H2}>Vendimias</h2><p style={DSC}>Toca cualquier campo para editar directamente</p></div>
+          <button className="bg" onClick={()=>setAddV(!addV)}>+ Nueva</button>
+        </div>
+        {addV && (
+          <div style={{...DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+            <p style={{...H3,marginBottom:12}}>Nueva vendimia</p>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(95px,1fr))",gap:8}}>
+              {[["Año","año"],["Fecha dd/mm/aaaa","fecha"],["Kg uva","kg"],["Litros","litros"],["Variedades","variedades"],["Alcohol %","alcohol"]].map(([ph,k])=>(
+                <input key={k} placeholder={ph} value={nV[k]} onChange={e=>setNV(p=>({...p,[k]:e.target.value}))}/>
+              ))}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
+              <textarea rows={2} placeholder="Condiciones del año" value={nV.condiciones} onChange={e=>setNV(p=>({...p,condiciones:e.target.value}))}/>
+              <textarea rows={2} placeholder="Notas de cata" value={nV.notas} onChange={e=>setNV(p=>({...p,notas:e.target.value}))}/>
+            </div>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button className="bg" onClick={()=>{
+                if(!nV.año)return;
+                const v={año:+nV.año,fecha:nV.fecha,kg:+nV.kg,litros:+nV.litros,variedades:nV.variedades.split(",").map(x=>x.trim()).filter(Boolean),alcohol:+nV.alcohol,taninos:3,acidez:3,cuerpo:3,condiciones:nV.condiciones,notas:nV.notas};
+                setVends(p=>[...p.filter(x=>x.año!==v.año),v].sort((a,b)=>a.año-b.año));
+                setNV({año:"",fecha:"",kg:"",litros:"",variedades:"",alcohol:"",condiciones:"",notas:""});
+                setAddV(false);
+              }}>Guardar</button>
+              <button className="bo" onClick={()=>setAddV(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        {[...vends].sort((a,b)=>b.año-a.año).map(v => (
+          <div key={v.año} style={{marginBottom:openV===v.año?0:8}}>
+            <div className={"vc card "+(openV===v.año?"op":"")} style={{...C}} onClick={()=>setOpenV(openV===v.año?null:v.año)}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                    <span style={{fontFamily:"'Crimson Pro',serif",fontSize:32,color:"var(--gold)",lineHeight:1}}>{v.año}</span>
+                    {mejor&&v.año===mejor.año&&v.kg>0 && <span style={TG}>🏆 MEJOR</span>}
+                    {v.kg===0 && <span style={{fontSize:10,color:"var(--tx3)"}}>Sin datos aún</span>}
+                  </div>
+                  {v.fecha && <p style={{fontSize:11,color:"var(--tx2)"}}>🍇 {v.fecha}</p>}
+                  {v.variedades?.length>0 && (
+                    <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:6}}>
+                      {v.variedades.map(vv=><span key={vv} style={TG}>{vv}</span>)}
+                    </div>
+                  )}
+                </div>
+                <div style={{textAlign:"right"}}>
+                  {v.litros>0 && <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--tx)"}}>{v.litros} L</p>}
+                  {v.kg>0    && <p style={{fontSize:11,color:"var(--tx2)"}}>{v.kg} kg</p>}
+                  <p style={{fontSize:10,color:"var(--gold)",marginTop:8}}>{openV===v.año?"▲ Cerrar":"▼ Editar"}</p>
+                </div>
+              </div>
+            </div>
+            {openV===v.año && (
+              <div style={DB}>
+                <p style={{...H3,marginBottom:12}}>✏️ Toca cualquier campo para editar</p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(95px,1fr))",gap:8,marginBottom:10}}>
+                  {[["Fecha","fecha"],["Kg uva","kg"],["Litros","litros"],["Alcohol %","alcohol"]].map(([ph,k])=>(
+                    <div key={k}><span style={LB}>{ph}</span><input value={v[k]||""} placeholder={ph} onChange={e=>sv(v.año,k,["kg","litros","alcohol"].includes(k)?+e.target.value:e.target.value)}/></div>
+                  ))}
+                </div>
+                <div style={{marginBottom:10}}><span style={LB}>Variedades (separadas por coma)</span><input value={(v.variedades||[]).join(", ")} placeholder="Garnacha, Tempranillo…" onChange={e=>sv(v.año,"variedades",e.target.value.split(",").map(x=>x.trim()).filter(Boolean))}/></div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                  {[["Condiciones del año","condiciones"],["Notas de cata","notas"]].map(([ph,k])=>(
+                    <div key={k}><span style={LB}>{ph}</span><textarea rows={3} value={v[k]||""} placeholder={ph} onChange={e=>sv(v.año,k,e.target.value)}/></div>
+                  ))}
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+                  {[["Taninos","taninos"],["Acidez","acidez"],["Cuerpo","cuerpo"]].map(([lab,k])=>(
+                    <div key={k}><span style={LB}>{lab} {v[k]||3}/5</span><Stars value={v[k]||3} onChange={n=>sv(v.año,k,n)}/></div>
+                  ))}
+                </div>
+                <div style={{display:"flex",justifyContent:"flex-end"}}>
+                  <button className="bd" onClick={e=>{e.stopPropagation();if(window.confirm("¿Eliminar la vendimia "+v.año+"?")){setVends(p=>p.filter(x=>x.año!==v.año));setOpenV(null);}}}>Eliminar {v.año}</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // FAENAS
+  // ══════════════════════════════════════════════════════════════════
+  function Faenas() {
+    const mesAct = MESES[new Date().getMonth()];
+    const porMes = MESES.reduce((acc,m) => {
+      const fs = fSort.filter(f=>f.mes===m);
+      if (fs.length) acc[m] = fs;
+      return acc;
+    }, {});
+    return (
+      <div className="fade">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,flexWrap:"wrap",gap:8}}>
+          <div><h2 style={H2}>Faenas 2026</h2><p style={DSC}>Toca un socio para confirmar · Toca texto para editar</p></div>
+          <button className="bg" onClick={()=>setAddF(!addF)}>+ Añadir</button>
+        </div>
+        {addF && (
+          <div style={{...DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+            <p style={{...H3,marginBottom:12}}>Nueva faena</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 52px 1fr",gap:8}}>
+              <input placeholder="Nombre" value={nF.nombre} onChange={e=>setNF(p=>({...p,nombre:e.target.value}))}/>
+              <input placeholder="🍇" value={nF.emoji} style={{textAlign:"center"}} onChange={e=>setNF(p=>({...p,emoji:e.target.value}))}/>
+              <select value={nF.mes} onChange={e=>setNF(p=>({...p,mes:e.target.value}))}>
+                {MESES.map(m=><option key={m}>{m}</option>)}
+              </select>
+            </div>
+            <textarea rows={2} placeholder="Descripción" style={{marginTop:8}} value={nF.desc} onChange={e=>setNF(p=>({...p,desc:e.target.value}))}/>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button className="bg" onClick={()=>{if(!nF.nombre)return;setFaenas(p=>[...p,{id:Date.now(),...nF,dia:""}]);setNF({nombre:"",emoji:"",mes:"Enero",desc:""});setAddF(false);}}>Guardar</button>
+              <button className="bo" onClick={()=>setAddF(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        {Object.entries(porMes).map(([mes,flist]) => (
+          <div key={mes} style={{marginBottom:22}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,paddingBottom:7,borderBottom:"1px solid var(--br2)"}}>
+              <span style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:mes===mesAct?"var(--gold)":"var(--tx2)"}}>{mes}</span>
+              {mes===mesAct && <span style={MB}>MES ACTUAL</span>}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:9}}>
+              {flist.map(f => {
+                const conf = socios.filter(sc=>ga(f.id,sc.id)==="si").length;
+                const dias = diasRestantes(f.dia);
+                const diasColor = dias===null?"var(--tx3)":dias===0?"rgba(255,220,50,.95)":dias<0?"rgba(200,80,80,.7)":dias<=7?"rgba(255,150,50,.9)":dias<=30?"var(--gold)":"var(--tx3)";
+                return (
+                  <div key={f.id} style={{...C}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4,flexWrap:"wrap"}}>
+                          <InlineEdit value={f.emoji||"🔧"} onChange={v=>sf(f.id,"emoji",v)} style={{fontSize:18}}/>
+                          <InlineEdit value={f.nombre} onChange={v=>sf(f.id,"nombre",v)} style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,color:"var(--tx)"}} placeholder="Nombre"/>
+                          {editFmes===f.id
+                            ? <select value={f.mes} onChange={e=>sf(f.id,"mes",e.target.value)} style={{width:120,padding:"3px 6px",fontSize:11}}>
+                                {MESES.map(m=><option key={m}>{m}</option>)}
+                              </select>
+                            : <span style={MB} className="editable" onClick={()=>setEditFmes(f.id)}>{f.mes}</span>
+                          }
+                        </div>
+                        <InlineEdit value={f.desc} onChange={v=>sf(f.id,"desc",v)} style={{fontSize:11,color:"var(--tx2)",lineHeight:1.55,display:"block",marginBottom:8}} placeholder="Descripción…" multiline/>
+                        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                          <span style={{fontSize:10,fontWeight:600,color:"var(--gold)"}}>📅</span>
+                          <InlineEdit value={f.dia} onChange={v=>sf(f.id,"dia",v)} style={{fontSize:11,color:f.dia?"var(--tx)":"var(--tx3)"}} placeholder="Toca para fijar fecha (dd/mm/aaaa)"/>
+                          {dias!==null&&f.dia && <span style={{fontSize:10,fontWeight:700,color:diasColor}}>{dias===0?"¡HOY!":dias<0?"Hace "+Math.abs(dias)+"d":dias===1?"Mañana":"En "+dias+"d"}</span>}
+                        </div>
+                      </div>
+                      <div style={{textAlign:"center",background:"var(--g10)",border:"1px solid var(--g20)",borderRadius:5,padding:"7px 9px",flexShrink:0,minWidth:46}}>
+                        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{conf}</p>
+                        <p style={{fontSize:9,color:"var(--tx3)",fontWeight:600}}>/{socios.length}</p>
+                      </div>
+                    </div>
+                    <SocioBotones fid={f.id} socios={socios} asist={asist} toggle={ta}/>
+                    <div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:10}}>
+                      {editFmes===f.id && <button className="be" onClick={()=>setEditFmes(null)}>✓ Listo</button>}
+                      <button className="bd" onClick={()=>{if(window.confirm("¿Eliminar "+f.nombre+"?"))setFaenas(p=>p.filter(x=>x.id!==f.id));}}>Eliminar</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SOCIOS
+  // ══════════════════════════════════════════════════════════════════
+  function Socios() {
+    return (
+      <div className="fade">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
+          <div><h2 style={H2}>Socios</h2><p style={DSC}>Toca cualquier dato para editarlo directamente</p></div>
+          <button className="bg" onClick={()=>setAddS(!addS)}>+ Añadir</button>
+        </div>
+        {addS && (
+          <div style={{...DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+            <p style={{...H3,marginBottom:12}}>Nuevo socio</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              <input placeholder="Nombre" value={nS.nombre} onChange={e=>setNS(p=>({...p,nombre:e.target.value}))}/>
+              <input placeholder="(Padre), (Hijo)…" value={nS.apodo} onChange={e=>setNS(p=>({...p,apodo:e.target.value}))}/>
+              <input placeholder="Rol" value={nS.rol} onChange={e=>setNS(p=>({...p,rol:e.target.value}))}/>
+            </div>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button className="bg" onClick={()=>{if(!nS.nombre)return;setSocios(p=>[...p,{id:Date.now(),...nS}]);setNS({nombre:"",apodo:"",rol:""});setAddS(false);}}>Guardar</button>
+              <button className="bo" onClick={()=>setAddS(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:10}}>
+          {socios.map(sc => {
+            const conf = faenas.filter(f=>ga(f.id,sc.id)==="si").length;
+            const pct  = faenas.length>0 ? Math.round((conf/faenas.length)*100) : 0;
+            const yes  = faenas.filter(f=>ga(f.id,sc.id)==="si").map(f=>f.nombre);
+            return (
+              <div key={sc.id} className="card" style={{...C,textAlign:"center",padding:"18px 12px"}}>
+                <Av nombre={sc.nombre} size={50}/>
+                <div style={{marginTop:10,marginBottom:4}}>
+                  <InlineEdit value={sc.nombre} onChange={v=>ss(sc.id,"nombre",v)} style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,color:"var(--tx)",display:"block"}} placeholder="Nombre"/>
+                  <InlineEdit value={sc.apodo}  onChange={v=>ss(sc.id,"apodo",v)}  style={{fontSize:11,color:"var(--tx2)",display:"block",marginTop:1}} placeholder="(apodo)"/>
+                  <InlineEdit value={sc.rol}    onChange={v=>ss(sc.id,"rol",v)}    style={{fontSize:10,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--gold)",display:"block",marginTop:3}} placeholder="Rol"/>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-around",borderTop:"1px solid var(--br2)",paddingTop:10,margin:"10px 0"}}>
+                  <div>
+                    <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)"}}>{conf}</p>
+                    <p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)"}}>Faenas</p>
+                  </div>
+                  <div>
+                    <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)"}}>{pct}%</p>
+                    <p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)"}}>Partic.</p>
+                  </div>
+                </div>
+                {yes.length>0 && (
+                  <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"center",marginBottom:10}}>
+                    {yes.slice(0,3).map(n=><span key={n} style={{fontSize:9,background:"rgba(45,122,62,.14)",border:"1px solid rgba(45,122,62,.3)",color:"rgba(100,210,130,.9)",padding:"2px 5px",borderRadius:3,fontWeight:600}}>✅ {n}</span>)}
+                    {yes.length>3 && <span style={{fontSize:9,color:"var(--tx3)"}}>+{yes.length-3}</span>}
+                  </div>
+                )}
+                <button className="bd" style={{width:"100%"}} onClick={()=>{if(window.confirm("¿Eliminar a "+sc.nombre+"?"))setSocios(p=>p.filter(x=>x.id!==sc.id));}}>Eliminar</button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // CONFIG
+  // ══════════════════════════════════════════════════════════════════
+  function Config() {
+    return (
+      <div className="fade">
+        <h2 style={H2}>Configuración</h2>
+        <p style={DSC}>Datos generales de la bodega</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={C}><span style={LB}>Nombre de la bodega</span><input value={bodega} onChange={e=>setBodega(e.target.value)} placeholder="Bodega Orioles"/></div>
+          <div style={C}><span style={LB}>Lema / Subtítulo</span><input value={lema} onChange={e=>setLema(e.target.value)} placeholder="Quebracántaros · Valdejalón"/></div>
+          <div style={C}>
+            <p style={{...H3,marginBottom:6}}>📲 Instalar app</p>
+            <p style={{fontSize:12,color:"var(--tx2)",lineHeight:1.7,marginBottom:10}}>Instala Bodega Orioles en la pantalla de inicio para usarla sin navegador y sin internet.</p>
+            <button className="bg" style={{width:"100%",padding:11}} onClick={()=>window.triggerInstall&&window.triggerInstall()}>📲 Instalar en este móvil</button>
+            <p style={{fontSize:11,color:"var(--tx3)",marginTop:8,lineHeight:1.6}}>Si no funciona: Chrome → Menú ⋮ → "Añadir a pantalla de inicio"</p>
+          </div>
+          <div style={C}>
+            <p style={{...H3,marginBottom:6}}>⬇ Copia de seguridad</p>
+            <p style={{fontSize:12,color:"var(--tx2)",lineHeight:1.7,marginBottom:10}}>Descarga todos los datos en JSON para guardar una copia.</p>
+            <button className="bg" style={{width:"100%",padding:10}} onClick={()=>{
+              const data={socios,vendimias:vends,faenas,asistencia:asist,inventario:inv,bodega,lema};
+              const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+              const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+              a.download="orioles-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click();
+            }}>⬇ Descargar backup JSON</button>
+          </div>
+          <div style={C}>
+            <p style={{...H3,marginBottom:8}}>El logo — 7 pájaros</p>
+            <div style={{display:"flex",alignItems:"center",gap:16}}>
+              <OriLogo size={48}/>
+              <p style={{fontSize:12,color:"var(--tx2)",lineHeight:1.7}}>Los 7 triángulos y rombos están extraídos de vuestra etiqueta <em>Quebracántaros</em>. Fiel al original.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── RENDER PRINCIPAL ──────────────────────────────────────────────
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <header style={{background:"#0D0D0D",borderBottom:"1px solid rgba(232,168,32,.14)",padding:"11px 16px",position:"sticky",top:0,zIndex:50}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,maxWidth:820,margin:"0 auto"}}>
+          <OriLogo size={30}/>
+          <div>
+            <h1 style={{fontFamily:"Montserrat",fontSize:16,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",lineHeight:1}}>ORIOLES</h1>
+            <p style={{fontSize:9,fontWeight:500,letterSpacing:".14em",textTransform:"uppercase",color:"var(--tx2)",marginTop:2}}>{lema}</p>
+          </div>
+        </div>
+      </header>
+      <nav style={{display:"flex",overflowX:"auto",gap:2,padding:"5px 10px",borderBottom:"1px solid var(--br2)",background:"#111",position:"sticky",top:53,zIndex:49}}>
+        {TABS.map(t => (
+          <button key={t.id} className={"tb "+(tab===t.id?"a":"")} onClick={()=>setTab(t.id)}>{t.l}</button>
+        ))}
+      </nav>
+      <main style={{padding:"20px 14px 64px",maxWidth:820,margin:"0 auto"}}>
+        {tab==="inicio"     && <Inicio/>}
+        {tab==="inventario" && <Inventario/>}
+        {tab==="vendimias"  && <Vendimias/>}
+        {tab==="faenas"     && <Faenas/>}
+        {tab==="socios"     && <Socios/>}
+        {tab==="config"     && <Config/>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+
+<script>
+/* ── Service Worker — solo en HTTPS (GitHub Pages), no en local ───── */
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").then(reg => {
+      console.log("SW registrado:", reg.scope);
+      // Detecta nueva versión y recarga automáticamente
+      reg.addEventListener("updatefound", () => {
+        const sw = reg.installing;
+        sw.addEventListener("statechange", () => {
+          if (sw.state === "installed" && navigator.serviceWorker.controller) {
+            console.log("Nueva versión detectada — actualizando…");
+            sw.postMessage("SKIP_WAITING");
+          }
+        });
+      });
+    }).catch(e => console.warn("SW:", e));
+
+    // Cuando el SW nuevo toma control → recarga silenciosa
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
+  });
+}
+
+/* ── Instalación PWA ─────────────────────────────────────────────── */
+let deferredPrompt = null;
+const banner = document.getElementById("ib");
+
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  banner.style.display = "flex";
+});
+
+function triggerInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; banner.style.display = "none"; });
+  } else {
+    alert("Para instalar la app:\n\n📱 Android Chrome → Menú ⋮ → \"Añadir a pantalla de inicio\"\n\n🍎 iPhone Safari → botón Compartir → \"Añadir a pantalla de inicio\"");
+  }
+}
+
+window.triggerInstall = triggerInstall;
+document.getElementById("ibb").addEventListener("click", triggerInstall);
+document.getElementById("ibc").addEventListener("click", () => { banner.style.display = "none"; });
+window.addEventListener("appinstalled", () => { banner.style.display = "none"; });
+</script>
+</body>
+</html>
