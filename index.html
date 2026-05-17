@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Bodega Orioles</title>
+  <link rel="manifest" href="./manifest.json"/>
+  <meta name="theme-color" content="#0D0D0D"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="Orioles"/>
+  <link rel="apple-touch-icon" href="./icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#0D0D0D; --bg2:#111; --sur:#1A1A1A; --sur2:#222;
+      --gold:#E8A820; --gold2:#F0B429;
+      --g10:rgba(232,168,32,.10); --g20:rgba(232,168,32,.20);
+      --g35:rgba(232,168,32,.35); --g50:rgba(232,168,32,.50);
+      --tx:#F0EAD6; --tx2:rgba(240,234,214,.55); --tx3:rgba(240,234,214,.28);
+      --br:rgba(232,168,32,.18); --br2:rgba(255,255,255,.06);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Montserrat',sans-serif}
+    #root{min-height:100vh}
+    ::-webkit-scrollbar{width:3px;height:3px}
+    ::-webkit-scrollbar-thumb{background:var(--g20);border-radius:2px}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .fade{animation:fadeUp .28s ease forwards}
+
+    /* Nav */
+    .tb{background:transparent;border:1px solid transparent;border-radius:5px;padding:7px 11px;color:var(--tx2);cursor:pointer;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:all .2s}
+    .tb:hover{background:var(--g10);color:var(--tx)}
+    .tb.a{background:var(--g10);border-color:var(--g35);color:var(--gold)}
+
+    /* Buttons */
+    .bg{background:var(--gold);color:#0D0D0D;border:none;border-radius:5px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .bg:hover{background:var(--gold2)}
+    .bo{background:transparent;color:var(--tx2);border:1px solid var(--br2);border-radius:5px;padding:7px 13px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:500;letter-spacing:.08em;cursor:pointer;transition:all .2s}
+    .bo:hover{border-color:var(--g20);color:var(--tx)}
+    .be{background:var(--g10);color:var(--gold);border:1px solid var(--g20);border-radius:5px;padding:5px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:all .2s}
+    .be:hover{background:var(--g20)}
+    .bd{background:rgba(180,40,40,.12);color:rgba(220,80,80,.8);border:1px solid rgba(180,40,40,.25);border-radius:5px;padding:5px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:background .2s}
+    .bd:hover{background:rgba(180,40,40,.22)}
+
+    /* Cards */
+    .card{transition:border-color .2s,transform .15s}
+    .card:hover{border-color:var(--g35)!important;transform:translateY(-1px)}
+    .vc{cursor:pointer}
+    .vc.op{border-color:var(--g50)!important;border-radius:7px 7px 0 0!important}
+    .sdot{cursor:pointer;transition:transform .15s}
+    .sdot:hover{transform:scale(1.07)}
+
+    /* Inputs */
+    input,textarea,select{background:var(--sur);border:1px solid rgba(232,168,32,.2);border-radius:5px;padding:8px 11px;color:var(--tx);font-family:'Montserrat',sans-serif;font-size:12px;outline:none;width:100%;transition:border-color .2s}
+    input::placeholder,textarea::placeholder{color:var(--tx3)}
+    input:focus,textarea:focus,select:focus{border-color:var(--g50)}
+    textarea{resize:vertical;line-height:1.6}
+    select option{background:#1a1a1a}
+
+    /* Inline editable text */
+    .editable{border-bottom:1px dashed rgba(232,168,32,.3);cursor:pointer;transition:border-color .2s}
+    .editable:hover{border-color:var(--gold)}
+
+    #ib{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--g35);border-radius:9px;padding:12px 16px;align-items:center;gap:10px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--tx);z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.7);max-width:340px;width:calc(100% - 32px)}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<div id="ib">
+  <span style="font-size:10px;letter-spacing:.06em">Instala Bodega Orioles</span>
+  <button class="bg" id="ibb" style="padding:6px 12px;font-size:9px">Instalar</button>
+  <button class="bo"  id="ibc" style="padding:6px 9px;font-size:10px">✕</button>
+</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef} = React;
+
+/* ── Logo: 7 triángulos exactos como la etiqueta ───────────────────── */
+function Logo({size=48}){
+  const g="#E8A820";
+  const s=size, h=s*1.45;
+  /* Triángulos apuntando hacia abajo dispuestos en árbol:
+     Fila A: 1 grande (centrado) = 1 pájaro
+     Fila B: 2 medios             = 2 pájaros
+     Fila C: 2 medios             = 2 pájaros
+     Fila D: 2 pequeños           = 2 pájaros
+     Total = 7 pájaros ✓  + rombos decorativos entre filas */
+  const w=s, H=h;
+  const cx=w/2;
+  const d=4; // tamaño rombo
+  return(
+    <svg width={w} height={H} viewBox={`0 0 60 87`} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Rombo top */}
+      <polygon points="30,0 33.5,3.5 30,7 26.5,3.5" fill={g}/>
+      {/* PÁJARO 1 — triángulo grande central */}
+      <polygon points="14,9 46,9 30,27" fill={g}/>
+      {/* Rombos fila 2 */}
+      <polygon points="9,30 12.5,33.5 9,37 5.5,33.5" fill={g}/>
+      <polygon points="51,30 54.5,33.5 51,37 47.5,33.5" fill={g}/>
+      {/* PÁJAROS 2 y 3 */}
+      <polygon points="4,39 24,39 14,54" fill={g}/>
+      <polygon points="36,39 56,39 46,54" fill={g}/>
+      {/* Rombos fila 3 */}
+      <polygon points="9,56 12.5,59.5 9,63 5.5,59.5" fill={g}/>
+      <polygon points="51,56 54.5,59.5 51,63 47.5,59.5" fill={g}/>
+      {/* PÁJAROS 4 y 5 */}
+      <polygon points="4,65 24,65 14,78" fill={g}/>
+      <polygon points="36,65 56,65 46,78" fill={g}/>
+      {/* Rombos fila 4 */}
+      <polygon points="9,80 12.5,83.5 9,87 5.5,83.5" fill={g}/>
+      <polygon points="51,80 54.5,83.5 51,87 47.5,83.5" fill={g}/>
+    </svg>
+  );
+}
+/* ── Eso son 5 triángulos. Necesito 7. Añado fila D ─────────────────── */
+/* → Ya corregido arriba con filas A(1)+B(2)+C(2) = 5. Falta fila D(2). */
+/* Lo hago como componente aparte con 4 filas reales: */
+function OriLogo({size=48}){
+  const g="#E8A820";
+  const W=60, H=110;
+  return(
+    <svg width={size} height={size*(H/W)} viewBox={`0 0 ${W} ${H}`} fill="none">
+      {/* Rombo cima */}
+      <polygon points="30,0 34,4 30,8 26,4" fill={g}/>
+      {/* PÁJARO 1 — grande */}
+      <polygon points="13,10 47,10 30,28" fill={g}/>
+      {/* Rombos laterales fila 2 */}
+      <polygon points="8,31 12,35 8,39 4,35"  fill={g}/>
+      <polygon points="52,31 56,35 52,39 48,35" fill={g}/>
+      {/* PÁJAROS 2 y 3 — medianos */}
+      <polygon points="3,41 23,41 13,56"  fill={g}/>
+      <polygon points="37,41 57,41 47,56" fill={g}/>
+      {/* Rombos laterales fila 3 */}
+      <polygon points="8,58 12,62 8,66 4,62"  fill={g}/>
+      <polygon points="52,58 56,62 52,66 48,62" fill={g}/>
+      {/* PÁJAROS 4 y 5 — medianos */}
+      <polygon points="3,68 23,68 13,82"  fill={g}/>
+      <polygon points="37,68 57,68 47,82" fill={g}/>
+      {/* Rombos laterales fila 4 */}
+      <polygon points="8,84 12,88 8,92 4,88"  fill={g}/>
+      <polygon points="52,84 56,88 52,92 48,88" fill={g}/>
+      {/* PÁJAROS 6 y 7 — pequeños */}
+      <polygon points="4,94 22,94 13,106"  fill={g}/>
+      <polygon points="38,94 56,94 47,106" fill={g}/>
+      {/* Rombos base */}
+      <polygon points="8,108 11,111 8,114 5,111"   fill={g}/>
+      <polygon points="52,108 55,111 52,114 49,111" fill={g}/>
+    </svg>
+  );
+}
+
+/* ── Datos iniciales ─────────────────────────────────────────────────── */
+const S0=[
+  {id:1,nombre:"Manuel",apodo:"(Padre)",rol:"Socio fundador"},
+  {id:2,nombre:"Manuel",apodo:"(Hijo)", rol:"Socio"},
+  {id:3,nombre:"Gabriel", apodo:"",rol:"Socio"},
+  {id:4,nombre:"Antonio", apodo:"",rol:"Socio"},
+  {id:5,nombre:"Héctor",  apodo:"",rol:"Socio"},
+  {id:6,nombre:"Cristina",apodo:"",rol:"Socia"},
+];
+const F0=[
+  {id:10, nombre:"Poda",                     emoji:"✂️", mes:"Enero",    dia:"",desc:"Poda de invierno. Eliminación de sarmientos del año anterior dejando las yemas necesarias para la próxima cosecha."},
+  {id:20, nombre:"Atado",                    emoji:"🪢", mes:"Febrero",  dia:"",desc:"Atado de los sarmientos podados sobre los alambres de la espaldera para guiar el crecimiento del pámpano."},
+  {id:30, nombre:"Embotellado",              emoji:"🍾", mes:"Marzo",    dia:"",desc:"Embotellado del vino del año anterior. Filtrado, llenado, corcho, capsulado y etiquetado de cada botella."},
+  {id:40, nombre:"Limpieza de Bodega",       emoji:"🧹", mes:"Marzo",    dia:"",desc:"Limpieza general de la bodega: toneles, depósitos, mangueras, prensas y todo el utillaje de elaboración."},
+  {id:50, nombre:"Tratamiento Fitosanitario",emoji:"💧", mes:"Mayo",     dia:"",desc:"Aplicación preventiva de azufre y cobre contra mildiu y oídio. Fundamental para proteger la cosecha."},
+  {id:60, nombre:"Desbrotado",               emoji:"🌿", mes:"Mayo",     dia:"",desc:"Eliminación de brotes no productivos para concentrar la savia en los racimos principales."},
+  {id:70, nombre:"Deshojado",                emoji:"🍃", mes:"Julio",    dia:"",desc:"Eliminación de hojas alrededor del racimo para favorecer la aireación y la maduración de la uva."},
+  {id:80, nombre:"Aclareo de racimos",        emoji:"🍇", mes:"Agosto",   dia:"",desc:"Eliminación de racimos en exceso para concentrar azúcar y sabor en los que quedan."},
+  {id:90, nombre:"Vendimia",                 emoji:"🍇", mes:"Octubre",  dia:"",desc:"Recogida manual de la uva. El momento más importante del año. Toda la familia junta en el campo."},
+  {id:100,nombre:"Prensado",                 emoji:"🔩", mes:"Octubre",  dia:"",desc:"Despalillado, estrujado y prensado de la uva para obtener el mosto. Llenado de depósitos."},
+  {id:110,nombre:"Fermentación y Trasiegos", emoji:"🍷", mes:"Noviembre",dia:"",desc:"Control de la fermentación alcohólica. Remontados diarios, control de temperatura y primer trasiego."},
+];
+const V0=[2019,2020,2021,2022,2023,2024].map(a=>({
+  año:a,fecha:"",kg:0,litros:0,variedades:[],alcohol:0,
+  taninos:3,acidez:3,cuerpo:3,condiciones:"",notas:""
+}));
+
+const NEXT ={"":"si",si:"no",no:"quizas",quizas:""};
+const ICON ={"":"❓",si:"✅",no:"❌",quizas:"🤔"};
+const RLBL ={"":"Sin confirmar",si:"Sí asisto",no:"No asisto",quizas:"Quizás"};
+const BRDR ={"":"rgba(255,255,255,.1)",si:"#2d7a3e",no:"#8b1a1a",quizas:"#8b6a00"};
+const MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MORD =Object.fromEntries(MESES.map((m,i)=>[m,i]));
+
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+
+/* ── Componentes helper ──────────────────────────────────────────────── */
+function InlineText({value,onChange,style={},placeholder="",multiline=false,className=""}){
+  const [edit,setEdit]=useState(false);
+  const ref=useRef();
+  useEffect(()=>{if(edit&&ref.current)ref.current.focus();},[edit]);
+  if(edit){
+    const props={ref,value,placeholder,onChange:e=>onChange(e.target.value),
+      onBlur:()=>setEdit(false),
+      onKeyDown:e=>{if(!multiline&&e.key==="Enter")setEdit(false)},
+      style:{...style,background:"var(--sur)",border:"1px solid var(--g50)",borderRadius:4,padding:"3px 7px",color:"var(--tx)",fontFamily:"inherit",fontSize:"inherit",fontWeight:"inherit",letterSpacing:"inherit",textTransform:"inherit",outline:"none",width:"100%"}};
+    return multiline?<textarea rows={3} {...props}/>:<input {...props}/>;
+  }
+  return(
+    <span className={`editable ${className}`} style={style} onClick={()=>setEdit(true)}
+      title="Toca para editar">
+      {value||<span style={{color:"var(--tx3)"}}>{placeholder}</span>}
+    </span>
+  );
+}
+
+function RatingRow({value,onChange}){
+  return(
+    <div style={{display:"flex",gap:4,marginTop:4}}>
+      {[1,2,3,4,5].map(n=>(
+        <button key={n} onClick={()=>onChange(n)}
+          style={{flex:1,height:20,borderRadius:3,border:"none",cursor:"pointer",
+            background:n<=value?"var(--gold)":"rgba(232,168,32,.1)",transition:"background .15s"}}/>
+      ))}
+    </div>
+  );
+}
+
+function Avatar({nombre,size=44}){
+  return(
+    <div style={{width:size,height:size,borderRadius:"50%",background:"#111",
+      border:"1.5px solid var(--g35)",display:"flex",alignItems:"center",justifyContent:"center",
+      fontFamily:"Montserrat",fontSize:size*.38,fontWeight:700,color:"var(--gold)",flexShrink:0}}>
+      {(nombre||"?").charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+/* ── APP ─────────────────────────────────────────────────────────────── */
+function App(){
+  const [tab,setTab]           =useState("inicio");
+  const [socios,setSocios]     =useState(()=>load("o3_s",S0));
+  const [vendimias,setVendimias]=useState(()=>load("o3_v",V0));
+  const [faenas,setFaenas]     =useState(()=>load("o3_f",F0));
+  const [asist,setAsist]       =useState(()=>load("o3_a",{}));
+  const [bodega,setBodega]     =useState(()=>load("o3_b","Bodega Orioles"));
+  const [lema,setLema]         =useState(()=>load("o3_l","Quebracántaros · Valdejalón"));
+  const [openV,setOpenV]       =useState(null);
+  const [editS,setEditS]       =useState(null); // id socio editando
+  const [editF,setEditF]       =useState(null); // id faena editando
+  const [addV,setAddV]         =useState(false);
+  const [addS,setAddS]         =useState(false);
+  const [addF,setAddF]         =useState(false);
+  const [nV,setNV]=useState({año:"",fecha:"",kg:"",litros:"",variedades:"",alcohol:"",condiciones:"",notas:""});
+  const [nS,setNS]=useState({nombre:"",apodo:"",rol:""});
+  const [nF,setNF]=useState({nombre:"",emoji:"",mes:"Enero",desc:""});
+
+  useEffect(()=>{localStorage.setItem("o3_s",JSON.stringify(socios));},[socios]);
+  useEffect(()=>{localStorage.setItem("o3_v",JSON.stringify(vendimias));},[vendimias]);
+  useEffect(()=>{localStorage.setItem("o3_f",JSON.stringify(faenas));},[faenas]);
+  useEffect(()=>{localStorage.setItem("o3_a",JSON.stringify(asist));},[asist]);
+  useEffect(()=>{localStorage.setItem("o3_b",JSON.stringify(bodega));},[bodega]);
+  useEffect(()=>{localStorage.setItem("o3_l",JSON.stringify(lema));},[lema]);
+
+  const ga=(fId,sId)=>asist[`${fId}_${sId}`]||"";
+  const ta=(fId,sId)=>{const k=`${fId}_${sId}`;setAsist(p=>({...p,[k]:NEXT[p[k]||""]}));};
+  const sv=(año,k,v)=>setVendimias(p=>p.map(x=>x.año===año?{...x,[k]:v}:x));
+  const sf=(id,k,v)=>setFaenas(p=>p.map(x=>x.id===id?{...x,[k]:v}:x));
+  const ss=(id,k,v)=>setSocios(p=>p.map(x=>x.id===id?{...x,[k]:v}:x));
+
+  const conDatos=vendimias.filter(v=>v.kg>0);
+  const totL=conDatos.reduce((s,v)=>s+v.litros,0);
+  const totK=conDatos.reduce((s,v)=>s+v.kg,0);
+  const maxL=Math.max(...conDatos.map(v=>v.litros),1);
+  const mejor=[...conDatos].sort((a,b)=>b.litros-a.litros)[0]||null;
+  const fSort=[...faenas].sort((a,b)=>MORD[a.mes]-MORD[b.mes]||a.id-b.id);
+
+  const TABS=[
+    {id:"inicio",   l:"Inicio"},
+    {id:"vendimias",l:"Vendimias"},
+    {id:"faenas",   l:"Faenas"},
+    {id:"socios",   l:"Socios"},
+    {id:"config",   l:"⚙️ Config"},
+  ];
+
+  /* ─── estilos base ─────────────────────────────────────────────────── */
+  const H2={fontFamily:"Montserrat",fontSize:18,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:"var(--tx)",marginBottom:4};
+  const H3={fontFamily:"Montserrat",fontSize:11,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--gold)",marginBottom:10};
+  const DSC={fontSize:12,color:"var(--tx2)",lineHeight:1.7,marginBottom:16};
+  const C={background:"var(--sur)",border:"1px solid var(--br)",borderRadius:7,padding:14};
+  const DB={background:"#111",border:"1px solid var(--br)",borderTop:"none",borderRadius:"0 0 7px 7px",padding:"14px 14px 18px"};
+  const LB={fontSize:10,fontWeight:600,letterSpacing:".1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:4,display:"block"};
+  const TG={fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--gold)",padding:"3px 8px",borderRadius:4};
+  const MB={fontSize:9,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--gold)",padding:"3px 8px",borderRadius:4};
+
+  /* ─── INICIO ───────────────────────────────────────────────────────── */
+  const Inicio=()=>(
+    <div className="fade">
+      <div style={{textAlign:"center",padding:"28px 0 24px",borderBottom:"1px solid var(--br2)",marginBottom:24}}>
+        <OriLogo size={60}/>
+        <h1 style={{fontFamily:"Montserrat",fontSize:26,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",marginTop:14,lineHeight:1}}>{bodega}</h1>
+        <p style={{fontFamily:"Montserrat",fontSize:10,fontWeight:500,letterSpacing:".18em",textTransform:"uppercase",color:"var(--tx2)",marginTop:6}}>{lema}</p>
+        <p style={{fontFamily:"Montserrat",fontSize:9,color:"var(--tx3)",marginTop:3,letterSpacing:".1em",textTransform:"uppercase"}}>{socios.length} socios · desde 2019</p>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:8,marginBottom:24}}>
+        {[["⚖️",totK>0?`${totK.toLocaleString()} kg`:"—","Uva"],
+          ["🍶",totL>0?`${totL.toLocaleString()} L`:"—","Vino"],
+          ["📆",`${vendimias.length},"Vendimias`],
+          ["👥",`${socios.length}`,"Socios"]
+        ].map(([ic,v,l],i)=>(
+          <div key={i} style={{...C,textAlign:"center",padding:"14px 8px"}}>
+            <p style={{fontSize:22,marginBottom:4}}>{ic}</p>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{v}</p>
+            <p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)",marginTop:4}}>{l}</p>
+          </div>
+        ))}
+      </div>
+
+      {conDatos.length>0&&(
+        <>
+          <p style={H3}>Producción por año</p>
+          <div style={{...C,marginBottom:20}}>
+            {[...conDatos].sort((a,b)=>a.año-b.año).map(v=>(
+              <div key={v.año} style={{display:"flex",alignItems:"center",gap:8,marginBottom:9}}>
+                <span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:"var(--gold)",width:34,flexShrink:0}}>{v.año}</span>
+                <div style={{flex:1,height:22,background:"rgba(255,255,255,.04)",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${(v.litros/maxL)*100}%`,background:"linear-gradient(90deg,rgba(232,168,32,.5),var(--gold))",borderRadius:4,display:"flex",alignItems:"center",paddingLeft:7}}>
+                    <span style={{fontSize:10,fontWeight:700,color:"#0D0D0D"}}>{v.litros}L</span>
+                  </div>
+                </div>
+                <span style={{fontSize:10,color:"var(--tx3)",width:46,textAlign:"right",flexShrink:0}}>{v.kg}kg</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <p style={H3}>Los socios</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        {socios.map(sc=>(
+          <div key={sc.id} style={{display:"flex",alignItems:"center",gap:9,...C,padding:"9px 13px",flex:"1 1 auto",minWidth:130}}>
+            <Avatar nombre={sc.nombre} size={34}/>
+            <div>
+              <p style={{fontFamily:"Montserrat",fontSize:13,fontWeight:600,color:"var(--tx)"}}>{sc.nombre}{sc.apodo?" "+sc.apodo:""}</p>
+              <p style={{fontSize:10,color:"var(--gold)",textTransform:"uppercase",letterSpacing:".06em"}}>{sc.rol}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  /* ─── VENDIMIAS ─────────────────────────────────────────────────────── */
+  const Vendimias=()=>(
+    <div className="fade">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,flexWrap:"wrap",gap:8}}>
+        <div><h2 style={H2}>Vendimias</h2><p style={DSC}>Toca cualquier campo para editarlo directamente</p></div>
+        <button className="bg" onClick={()=>setAddV(!addV)}>+ Nueva</button>
+      </div>
+
+      {addV&&(
+        <div style={{...DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+          <p style={{...H3,marginBottom:12}}>Nueva vendimia</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(95px,1fr))",gap:8}}>
+            {[["Año","año"],["Fecha dd/mm","fecha"],["Kg uva","kg"],["Litros","litros"],["Variedades","variedades"],["Alcohol %","alcohol"]].map(([ph,k])=>(
+              <input key={k} placeholder={ph} value={nV[k]} onChange={e=>setNV(p=>({...p,[k]:e.target.value}))}/>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
+            <textarea rows={2} placeholder="Condiciones del año" value={nV.condiciones} onChange={e=>setNV(p=>({...p,condiciones:e.target.value}))}/>
+            <textarea rows={2} placeholder="Notas de cata" value={nV.notas} onChange={e=>setNV(p=>({...p,notas:e.target.value}))}/>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:10}}>
+            <button className="bg" onClick={()=>{
+              if(!nV.año)return;
+              const v={año:+nV.año,fecha:nV.fecha,kg:+nV.kg,litros:+nV.litros,
+                variedades:nV.variedades.split(",").map(x=>x.trim()).filter(Boolean),
+                alcohol:+nV.alcohol,taninos:3,acidez:3,cuerpo:3,
+                condiciones:nV.condiciones,notas:nV.notas};
+              setVendimias(p=>[...p.filter(x=>x.año!==v.año),v].sort((a,b)=>a.año-b.año));
+              setNV({año:"",fecha:"",kg:"",litros:"",variedades:"",alcohol:"",condiciones:"",notas:""});
+              setAddV(false);
+            }}>Guardar</button>
+            <button className="bo" onClick={()=>setAddV(false)}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {[...vendimias].sort((a,b)=>b.año-a.año).map(v=>(
+        <div key={v.año} style={{marginBottom:openV===v.año?0:8}}>
+          <div className={`vc card ${openV===v.año?"op":""}`} style={{...C}} onClick={()=>setOpenV(openV===v.año?null:v.año)}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                  <span style={{fontFamily:"'Crimson Pro',serif",fontSize:32,color:"var(--gold)",lineHeight:1}}>{v.año}</span>
+                  {mejor&&v.año===mejor.año&&v.kg>0&&<span style={TG}>🏆 MEJOR</span>}
+                  {v.kg===0&&<span style={{fontSize:10,color:"var(--tx3)"}}>Sin datos aún</span>}
+                </div>
+                {v.fecha&&<p style={{fontSize:11,color:"var(--tx2)"}}>🍇 {v.fecha}</p>}
+                {v.variedades?.length>0&&(
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:6}}>
+                    {v.variedades.map(vv=><span key={vv} style={TG}>{vv}</span>)}
+                  </div>
+                )}
+              </div>
+              <div style={{textAlign:"right"}}>
+                {v.litros>0&&<p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--tx)"}}>{v.litros} L</p>}
+                {v.kg>0&&<p style={{fontSize:11,color:"var(--tx2)"}}>{v.kg} kg</p>}
+                <p style={{fontSize:10,color:"var(--gold)",marginTop:8}}>{openV===v.año?"▲ Cerrar":"▼ Editar"}</p>
+              </div>
+            </div>
+          </div>
+
+          {openV===v.año&&(
+            <div style={DB}>
+              <p style={{...H3,marginBottom:12}}>✏️ Todo editable — toca cualquier campo</p>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(95px,1fr))",gap:8,marginBottom:10}}>
+                {[["Fecha","fecha"],["Kg uva","kg"],["Litros","litros"],["Alcohol %","alcohol"]].map(([ph,k])=>(
+                  <div key={k}>
+                    <span style={LB}>{ph}</span>
+                    <input value={v[k]||""} placeholder={ph}
+                      onChange={e=>sv(v.año,k,["kg","litros","alcohol"].includes(k)?+e.target.value:e.target.value)}/>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginBottom:10}}>
+                <span style={LB}>Variedades (separadas por coma)</span>
+                <input value={(v.variedades||[]).join(", ")} placeholder="Garnacha, Tempranillo…"
+                  onChange={e=>sv(v.año,"variedades",e.target.value.split(",").map(x=>x.trim()).filter(Boolean))}/>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                {[["Condiciones del año","condiciones"],["Notas de cata","notas"]].map(([ph,k])=>(
+                  <div key={k}>
+                    <span style={LB}>{ph}</span>
+                    <textarea rows={3} value={v[k]||""} placeholder={ph}
+                      onChange={e=>sv(v.año,k,e.target.value)}/>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+                {[["Taninos","taninos"],["Acidez","acidez"],["Cuerpo","cuerpo"]].map(([lab,k])=>(
+                  <div key={k}>
+                    <span style={LB}>{lab} {v[k]||3}/5</span>
+                    <RatingRow value={v[k]||3} onChange={n=>sv(v.año,k,n)}/>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"flex-end"}}>
+                <button className="bd" onClick={e=>{e.stopPropagation();if(window.confirm(`¿Eliminar vendimia ${v.año}?`)){setVendimias(p=>p.filter(x=>x.año!==v.año));setOpenV(null);}}}>
+                  Eliminar {v.año}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  /* ─── FAENAS ────────────────────────────────────────────────────────── */
+  const Faenas=()=>{
+    const mesAct=MESES[new Date().getMonth()];
+    const porMes=MESES.reduce((acc,m)=>{
+      const fs=fSort.filter(f=>f.mes===m);
+      if(fs.length)acc[m]=fs;
+      return acc;
+    },{});
+    return(
+      <div className="fade">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,flexWrap:"wrap",gap:8}}>
+          <div><h2 style={H2}>Faenas 2026</h2><p style={DSC}>Toca un socio para cambiar su asistencia · Toca cualquier texto para editar</p></div>
+          <button className="bg" onClick={()=>setAddF(!addF)}>+ Añadir</button>
+        </div>
+
+        {addF&&(
+          <div style={{...DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+            <p style={{...H3,marginBottom:12}}>Nueva faena</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 48px 1fr",gap:8,alignItems:"end"}}>
+              <input placeholder="Nombre de la faena" value={nF.nombre} onChange={e=>setNF(p=>({...p,nombre:e.target.value}))}/>
+              <input placeholder="🍇" value={nF.emoji} style={{textAlign:"center"}} onChange={e=>setNF(p=>({...p,emoji:e.target.value}))}/>
+              <select value={nF.mes} onChange={e=>setNF(p=>({...p,mes:e.target.value}))}>
+                {MESES.map(m=><option key={m}>{m}</option>)}
+              </select>
+            </div>
+            <textarea rows={2} placeholder="Descripción" style={{marginTop:8}} value={nF.desc} onChange={e=>setNF(p=>({...p,desc:e.target.value}))}/>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button className="bg" onClick={()=>{
+                if(!nF.nombre)return;
+                setFaenas(p=>[...p,{id:Date.now(),...nF,dia:""}]);
+                setNF({nombre:"",emoji:"",mes:"Enero",desc:""});
+                setAddF(false);
+              }}>Guardar</button>
+              <button className="bo" onClick={()=>setAddF(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
+
+        {Object.entries(porMes).map(([mes,flist])=>(
+          <div key={mes} style={{marginBottom:24}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,paddingBottom:7,borderBottom:"1px solid var(--br2)"}}>
+              <span style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:mes===mesAct?"var(--gold)":"var(--tx2)"}}>{mes}</span>
+              {mes===mesAct&&<span style={MB}>MES ACTUAL</span>}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:9}}>
+              {flist.map(f=>{
+                const conf=socios.filter(sc=>ga(f.id,sc.id)==="si").length;
+                const isEdit=editF===f.id;
+                return(
+                  <div key={f.id} style={{...C}}>
+                    {/* Cabecera faena */}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5,flexWrap:"wrap"}}>
+                          {/* Emoji editable */}
+                          <InlineText value={f.emoji||"🔧"} onChange={v=>sf(f.id,"emoji",v)}
+                            style={{fontSize:18,cursor:"pointer"}} placeholder="🔧"/>
+                          {/* Nombre editable */}
+                          <InlineText value={f.nombre} onChange={v=>sf(f.id,"nombre",v)}
+                            style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,letterSpacing:".05em",color:"var(--tx)"}}
+                            placeholder="Nombre de la faena"/>
+                          {/* Mes editable */}
+                          {isEdit
+                            ? <select value={f.mes} onChange={e=>sf(f.id,"mes",e.target.value)} style={{width:120,padding:"3px 6px",fontSize:11}}>
+                                {MESES.map(m=><option key={m}>{m}</option>)}
+                              </select>
+                            : <span style={MB} onClick={()=>setEditF(f.id)} title="Toca para cambiar mes" className="editable">{f.mes}</span>
+                          }
+                        </div>
+                        {/* Descripción editable */}
+                        <InlineText value={f.desc} onChange={v=>sf(f.id,"desc",v)}
+                          style={{fontSize:11,color:"var(--tx2)",lineHeight:1.55,display:"block",marginBottom:8}}
+                          placeholder="Descripción de la faena…" multiline/>
+                        {/* Fecha editable */}
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <span style={{fontSize:10,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--gold)"}}>📅</span>
+                          <InlineText value={f.dia} onChange={v=>sf(f.id,"dia",v)}
+                            style={{fontSize:11,color:f.dia?"var(--tx)":"var(--tx3)"}}
+                            placeholder="Toca para fijar fecha (dd/mm/aaaa)"/>
+                        </div>
+                      </div>
+                      <div style={{textAlign:"center",background:"var(--g10)",border:"1px solid var(--g20)",borderRadius:5,padding:"7px 9px",flexShrink:0,minWidth:46}}>
+                        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{conf}</p>
+                        <p style={{fontSize:9,color:"var(--tx3)",fontWeight:600,letterSpacing:".06em"}}>/{socios.length}</p>
+                      </div>
+                    </div>
+                    {/* Botones asistencia */}
+                    <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+                      {socios.map(sc=>{
+                        const st=ga(f.id,sc.id);
+                        return(
+                          <button key={sc.id} className="sdot"
+                            title={`${sc.nombre}${sc.apodo?" "+sc.apodo:""}: ${RLBL[st]}`}
+                            style={{background:"var(--bg2)",border:`1.5px solid ${BRDR[st]}`,borderRadius:5,padding:"5px 9px",display:"flex",alignItems:"center",gap:5}}
+                            onClick={()=>ta(f.id,sc.id)}>
+                            <span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:500,color:"var(--tx2)"}}>{sc.nombre}</span>
+                            {sc.apodo&&<span style={{fontSize:9,color:"var(--tx3)"}}>{sc.apodo}</span>}
+                            <span style={{fontSize:12}}>{ICON[st]}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div style={{display:"flex",justifyContent:"flex-end",gap:6}}>
+                      {isEdit&&<button className="be" onClick={()=>setEditF(null)}>✓ Listo</button>}
+                      {!isEdit&&<button className="be" onClick={()=>setEditF(f.id)}>✏️ Editar mes</button>}
+                      <button className="bd" onClick={()=>{if(window.confirm(`¿Eliminar "${f.nombre}"?`))setFaenas(p=>p.filter(x=>x.id!==f.id));}}>Eliminar</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  /* ─── SOCIOS ────────────────────────────────────────────────────────── */
+  const Socios=()=>(
+    <div className="fade">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
+        <div><h2 style={H2}>Socios</h2><p style={DSC}>Toca cualquier dato para editarlo</p></div>
+        <button className="bg" onClick={()=>setAddS(!addS)}>+ Añadir</button>
+      </div>
+
+      {addS&&(
+        <div style={{...DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+          <p style={{...H3,marginBottom:12}}>Nuevo socio</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+            <input placeholder="Nombre" value={nS.nombre} onChange={e=>setNS(p=>({...p,nombre:e.target.value}))}/>
+            <input placeholder="(Padre), (Hijo)…" value={nS.apodo} onChange={e=>setNS(p=>({...p,apodo:e.target.value}))}/>
+            <input placeholder="Rol" value={nS.rol} onChange={e=>setNS(p=>({...p,rol:e.target.value}))}/>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:10}}>
+            <button className="bg" onClick={()=>{
+              if(!nS.nombre)return;
+              setSocios(p=>[...p,{id:Date.now(),...nS}]);
+              setNS({nombre:"",apodo:"",rol:""});
+              setAddS(false);
+            }}>Guardar</button>
+            <button className="bo" onClick={()=>setAddS(false)}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:10}}>
+        {socios.map(sc=>{
+          const conf=faenas.filter(f=>ga(f.id,sc.id)==="si").length;
+          const pct=faenas.length>0?Math.round((conf/faenas.length)*100):0;
+          const sí=faenas.filter(f=>ga(f.id,sc.id)==="si").map(f=>f.nombre);
+          return(
+            <div key={sc.id} className="card" style={{...C,textAlign:"center",padding:"18px 12px"}}>
+              <Avatar nombre={sc.nombre} size={50}/>
+              <div style={{marginTop:10,marginBottom:4}}>
+                {/* Nombre editable */}
+                <InlineText value={sc.nombre} onChange={v=>ss(sc.id,"nombre",v)}
+                  style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,color:"var(--tx)",display:"block"}}
+                  placeholder="Nombre"/>
+                {/* Apodo editable */}
+                <InlineText value={sc.apodo} onChange={v=>ss(sc.id,"apodo",v)}
+                  style={{fontSize:11,color:"var(--tx2)",display:"block",marginTop:1}}
+                  placeholder="(apodo)"/>
+                {/* Rol editable */}
+                <InlineText value={sc.rol} onChange={v=>ss(sc.id,"rol",v)}
+                  style={{fontSize:10,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--gold)",display:"block",marginTop:3}}
+                  placeholder="Rol"/>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-around",borderTop:"1px solid var(--br2)",paddingTop:10,margin:"10px 0"}}>
+                <div>
+                  <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)"}}>{conf}</p>
+                  <p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)"}}>Faenas</p>
+                </div>
+                <div>
+                  <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)"}}>{pct}%</p>
+                  <p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)"}}>Partic.</p>
+                </div>
+              </div>
+              {sí.length>0&&(
+                <div style={{display:"flex",flexWrap:"wrap",gap:3,justifyContent:"center",marginBottom:10}}>
+                  {sí.slice(0,3).map(n=>(
+                    <span key={n} style={{fontSize:9,background:"rgba(45,122,62,.14)",border:"1px solid rgba(45,122,62,.3)",color:"rgba(100,210,130,.9)",padding:"2px 5px",borderRadius:3,fontWeight:600}}>✅ {n}</span>
+                  ))}
+                  {sí.length>3&&<span style={{fontSize:9,color:"var(--tx3)"}}>+{sí.length-3}</span>}
+                </div>
+              )}
+              <button className="bd" style={{width:"100%"}} onClick={()=>{
+                if(window.confirm(`¿Eliminar a ${sc.nombre}?`))setSocios(p=>p.filter(x=>x.id!==sc.id));
+              }}>Eliminar</button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  /* ─── CONFIGURACIÓN ─────────────────────────────────────────────────── */
+  const Config=()=>(
+    <div className="fade">
+      <h2 style={H2}>Configuración</h2>
+      <p style={DSC}>Edita los datos generales de la bodega</p>
+
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div style={C}>
+          <span style={LB}>Nombre de la bodega</span>
+          <input value={bodega} onChange={e=>setBodega(e.target.value)} placeholder="Bodega Orioles"/>
+        </div>
+        <div style={C}>
+          <span style={LB}>Lema / Subtítulo</span>
+          <input value={lema} onChange={e=>setLema(e.target.value)} placeholder="Quebracántaros · Valdejalón"/>
+        </div>
+        <div style={C}>
+          <p style={{...H3,marginBottom:6}}>Año de faenas activo</p>
+          <p style={{fontSize:13,color:"var(--tx2)",marginBottom:4}}>Actualmente mostrando faenas de <span style={{color:"var(--gold)",fontWeight:700}}>2026</span></p>
+          <p style={{fontSize:11,color:"var(--tx3)"}}>El cambio de año de faenas estará disponible en la próxima versión.</p>
+        </div>
+        <div style={C}>
+          <p style={{...H3,marginBottom:6}}>Exportar datos</p>
+          <p style={{fontSize:12,color:"var(--tx2)",marginBottom:10}}>Descarga todos los datos de la bodega en formato JSON para hacer copia de seguridad.</p>
+          <button className="bg" onClick={()=>{
+            const data={socios,vendimias,faenas,asistencia:asist,bodega,lema};
+            const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+            const a=document.createElement("a");
+            a.href=URL.createObjectURL(blob);
+            a.download="bodega-orioles-backup.json";
+            a.click();
+          }}>⬇ Descargar backup</button>
+        </div>
+        <div style={C}>
+          <p style={{...H3,marginBottom:6}}>Logotipo</p>
+          <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <OriLogo size={50}/>
+            <p style={{fontSize:12,color:"var(--tx2)",lineHeight:1.7}}>Los 7 pájaros (triángulos) y rombos representan la identidad de Bodega Orioles. Están extraídos de vuestra etiqueta Quebracántaros.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ─── RENDER ─────────────────────────────────────────────────────────── */
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      {/* Header */}
+      <header style={{background:"#0D0D0D",borderBottom:"1px solid rgba(232,168,32,.14)",padding:"11px 16px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,maxWidth:820,margin:"0 auto"}}>
+          <OriLogo size={32}/>
+          <div>
+            <h1 style={{fontFamily:"Montserrat",fontSize:17,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",lineHeight:1}}>{bodega.replace("Bodega ","")}</h1>
+            <p style={{fontSize:9,fontWeight:500,letterSpacing:".16em",textTransform:"uppercase",color:"var(--tx2)",marginTop:2}}>{lema}</p>
+          </div>
+        </div>
+      </header>
+
+      {/* Nav */}
+      <nav style={{display:"flex",overflowX:"auto",gap:2,padding:"5px 10px",borderBottom:"1px solid var(--br2)",background:"#111"}}>
+        {TABS.map(t=>(
+          <button key={t.id} className={`tb ${tab===t.id?"a":""}`} onClick={()=>setTab(t.id)}>{t.l}</button>
+        ))}
+      </nav>
+
+      {/* Main */}
+      <main style={{padding:"20px 14px 64px",maxWidth:820,margin:"0 auto"}}>
+        {tab==="inicio"    &&<Inicio/>}
+        {tab==="vendimias" &&<Vendimias/>}
+        {tab==="faenas"    &&<Faenas/>}
+        {tab==="socios"    &&<Socios/>}
+        {tab==="config"    &&<Config/>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+<script>
+if('serviceWorker'in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(r=>console.log('SW:',r.scope))
+      .catch(e=>console.warn(e));
+  });
+}
+let dp;
+const bn=document.getElementById('ib');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;bn.style.display='flex';});
+document.getElementById('ibb').addEventListener('click',()=>{bn.style.display='none';dp.prompt();});
+document.getElementById('ibc').addEventListener('click',()=>{bn.style.display='none';});
+window.addEventListener('appinstalled',()=>{bn.style.display='none';});
+</script>
+</body>
+</html>
