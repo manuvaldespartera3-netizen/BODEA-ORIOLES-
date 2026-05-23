@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Bodega Orioles</title>
+  <link rel="manifest" href="./manifest.json"/>
+  <meta name="theme-color" content="#0D0D0D"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="Orioles"/>
+  <link rel="apple-touch-icon" href="./icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#0D0D0D;--bg2:#111;--sur:#1A1A1A;
+      --gold:#E8A820;--gold2:#F0B429;
+      --g10:rgba(232,168,32,.10);--g20:rgba(232,168,32,.20);
+      --g35:rgba(232,168,32,.35);--g50:rgba(232,168,32,.50);
+      --tx:#F0EAD6;--tx2:rgba(240,234,214,.55);--tx3:rgba(240,234,214,.28);
+      --br:rgba(232,168,32,.18);--br2:rgba(255,255,255,.06);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Montserrat',sans-serif}
+    #root{min-height:100vh}
+    ::-webkit-scrollbar{width:3px;height:3px}
+    ::-webkit-scrollbar-thumb{background:var(--g20);border-radius:2px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .fade{animation:fadeUp .28s ease forwards}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+    .blink{animation:blink 2s infinite}
+    .tb{background:transparent;border:1px solid transparent;border-radius:5px;padding:7px 11px;color:var(--tx2);cursor:pointer;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:all .2s}
+    .tb:hover,.tb.a{background:var(--g10)}.tb.a{border-color:var(--g35);color:var(--gold)}
+    .vtb{background:transparent;border:1px solid transparent;border-radius:4px;padding:5px 9px;color:var(--tx2);cursor:pointer;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;transition:all .2s}
+    .vtb:hover,.vtb.a{background:var(--g10)}.vtb.a{border-color:var(--g35);color:var(--gold)}
+    .bg{background:var(--gold);color:#0D0D0D;border:none;border-radius:5px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .bg:hover{background:var(--gold2)}
+    .bo{background:transparent;color:var(--tx2);border:1px solid var(--br2);border-radius:5px;padding:7px 13px;font-family:'Montserrat',sans-serif;font-size:10px;cursor:pointer;transition:all .2s}
+    .bo:hover{border-color:var(--g20);color:var(--tx)}
+    .be{background:var(--g10);color:var(--gold);border:1px solid var(--g20);border-radius:5px;padding:5px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer}
+    .bd{background:rgba(180,40,40,.12);color:rgba(220,80,80,.8);border:1px solid rgba(180,40,40,.25);border-radius:5px;padding:5px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer}
+    .card{transition:border-color .2s,transform .15s}
+    .card:hover{border-color:var(--g35)!important;transform:translateY(-1px)}
+    .vc{cursor:pointer}.vc.op{border-color:var(--g50)!important;border-radius:7px 7px 0 0!important}
+    .sdot{cursor:pointer;transition:transform .15s}.sdot:hover{transform:scale(1.07)}
+    input,textarea,select{background:var(--sur);border:1px solid rgba(232,168,32,.2);border-radius:5px;padding:8px 11px;color:var(--tx);font-family:'Montserrat',sans-serif;font-size:12px;outline:none;width:100%;transition:border-color .2s}
+    input[type=date]{color-scheme:dark}
+    input::placeholder,textarea::placeholder{color:var(--tx3)}
+    input:focus,textarea:focus,select:focus{border-color:var(--g50)}
+    textarea{resize:vertical;line-height:1.6}
+    select option{background:#1a1a1a}
+    .editable{border-bottom:1px dashed rgba(232,168,32,.3);cursor:pointer}
+    /* ── Modo lectura ── */
+    body.locked .bg,body.locked .bd,body.locked .be{display:none!important}
+    body.locked input:not(.lock-btn),body.locked select,body.locked textarea{pointer-events:none;opacity:.5;cursor:not-allowed;border-color:var(--br2)!important;background:rgba(255,255,255,.02)!important}
+    body.locked .sdot{pointer-events:auto!important;opacity:1!important}
+    #ib{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--g35);border-radius:9px;padding:12px 16px;align-items:center;gap:10px;font-size:11px;color:var(--tx);z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.7);max-width:340px;width:calc(100% - 32px)}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<div id="ib">
+  <span style="font-family:Montserrat,sans-serif">📲 Instala Bodega Orioles</span>
+  <button class="bg" id="ibb" style="padding:6px 12px;font-size:9px;flex-shrink:0">Instalar</button>
+  <button class="bo" id="ibc" style="padding:6px 9px;flex-shrink:0">✕</button>
+</div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef} = React;
+
+/* ── Logo 7 pájaros ─────────────────────────────────────────────── */
+function OriLogo({size=48}){
+  const g="#E8A820";
+  return(
+    <svg width={size} height={size*1.83} viewBox="0 0 60 110" fill="none">
+      <polygon points="30,0 34,4 30,8 26,4" fill={g}/>
+      <polygon points="13,10 47,10 30,28" fill={g}/>
+      <polygon points="8,31 12,35 8,39 4,35" fill={g}/><polygon points="52,31 56,35 52,39 48,35" fill={g}/>
+      <polygon points="3,41 23,41 13,56" fill={g}/><polygon points="37,41 57,41 47,56" fill={g}/>
+      <polygon points="8,58 12,62 8,66 4,62" fill={g}/><polygon points="52,58 56,62 52,66 48,62" fill={g}/>
+      <polygon points="3,68 23,68 13,82" fill={g}/><polygon points="37,68 57,68 47,82" fill={g}/>
+      <polygon points="8,84 12,88 8,92 4,88" fill={g}/><polygon points="52,84 56,88 52,92 48,88" fill={g}/>
+      <polygon points="4,94 22,94 13,106" fill={g}/><polygon points="38,94 56,94 47,106" fill={g}/>
+      <polygon points="8,108 11,111 8,114 5,111" fill={g}/><polygon points="52,108 55,111 52,114 49,111" fill={g}/>
+    </svg>
+  );
+}
+
+/* ── Constantes ─────────────────────────────────────────────────── */
+const MESES      = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MORD       = Object.fromEntries(MESES.map((m,i)=>[m,i]));
+const VARIEDADES = ["Garnacha","Tempranillo","Macabeo","Garnacha Blanca"];
+const VIÑAS_N    = ["Grío","Quebracántaros"];
+const AÑOS_V     = [2020,2021,2022,2023,2024,2025,2026];
+const NEXT       = {"":"si",si:"no",no:"quizas",quizas:""};
+const AICON      = {"":"❓",si:"✅",no:"❌",quizas:"🤔"};
+const ALBL       = {"":"Sin confirmar",si:"Sí asisto",no:"No asisto",quizas:"Quizás"};
+const ABRD       = {"":"rgba(255,255,255,.1)",si:"#2d7a3e",no:"#8b1a1a",quizas:"#8b6a00"};
+const CATS_ECO   = [
+  {id:"quimicos",label:"Químicos",emoji:"🧪"},{id:"limpieza",label:"Limpieza",emoji:"🧹"},
+  {id:"uva",label:"Uva",emoji:"🍇"},{id:"botella",label:"Botella",emoji:"🍾"},
+  {id:"corcho",label:"Corcho",emoji:"🪵"},{id:"etiqueta",label:"Etiqueta",emoji:"🏷️"},
+  {id:"analisis_lab",label:"Análisis lab.",emoji:"🔬"},{id:"general",label:"General",emoji:"📦"},
+];
+// Tabs de añada (8 en total)
+const A_TABS = [
+  {id:"general",l:"General"},{id:"vinas",l:"Viñas"},{id:"campo",l:"Campo"},
+  {id:"fermentacion",l:"Fermentación"},{id:"sulfuroso",l:"Sulfuroso"},
+  {id:"analisis",l:"Análisis"},{id:"hitos",l:"Hitos"},{id:"catas",l:"Catas"},
+];
+const CAMPOS_AN=[
+  ["Alcohol","alcohol","%"],["Densidad","densidad","g/L"],["PH","ph",""],
+  ["SO₂ total","sulfurosoTotal","mg/L"],["SO₂ libre","sulfurosoLibre","mg/L"],
+  ["Acidez volátil","acidezVolatil","g/L"],["Acidez total","acidezTotal","g/L"],
+  ["Extracto seco","extractoSeco","g/L"],["Azúcares reductores","azucaresReductores","g/L"],
+];
+
+/* ── Estilos módulo-nivel ────────────────────────────────────────── */
+const S={
+  H2:{fontFamily:"Montserrat",fontSize:18,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:"var(--tx)",marginBottom:4},
+  H3:{fontFamily:"Montserrat",fontSize:11,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"var(--gold)",marginBottom:10},
+  DSC:{fontSize:12,color:"var(--tx2)",lineHeight:1.7,marginBottom:16},
+  C:{background:"var(--sur)",border:"1px solid var(--br)",borderRadius:7,padding:14},
+  DB:{background:"#111",border:"1px solid var(--br)",borderTop:"none",borderRadius:"0 0 7px 7px",padding:14},
+  LB:{fontSize:10,fontWeight:600,letterSpacing:".1em",textTransform:"uppercase",color:"var(--gold)",marginBottom:4,display:"block"},
+  TG:{fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--gold)",padding:"3px 8px",borderRadius:4},
+  MB:{fontSize:9,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--gold)",padding:"3px 7px",borderRadius:4},
+};
+
+/* ── Helpers ─────────────────────────────────────────────────────── */
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function showDate(s){if(!s)return"";if(s.includes("-")){const[y,m,d]=s.split("-");return`${d}/${m}/${y}`;}return s;}
+function parseDate(s){if(!s)return null;if(s.includes("-"))return new Date(s+"T00:00:00");const p=s.split("/");if(p.length!==3)return null;const[d,m,y]=p.map(Number);if(!d||!m||!y)return null;return new Date(y,m-1,d);}
+function diasR(s){const d=parseDate(s);if(!d)return null;const h=new Date();h.setHours(0,0,0,0);return Math.round((d-h)/864e5);}
+function calcEdad(fn){if(!fn)return null;const d=parseDate(fn);if(!d)return null;const h=new Date();let e=h.getFullYear()-d.getFullYear();if(h.getMonth()-d.getMonth()<0||(h.getMonth()-d.getMonth()===0&&h.getDate()<d.getDate()))e--;return e;}
+function uid(){return String(Date.now()+Math.random());}
+
+/* ── Modelo de datos ─────────────────────────────────────────────── */
+function makeVino(nombre){
+  return{id:uid(),nombre:nombre||"Vino sin nombre",fechaVendimia:"",litros:0,variedades:[],notas:""};
+}
+function makeVendimia(año){
+  return{año,vinos:[],viñas:[],campo:[],fermentaciones:[],sulfuroso:[],analisis:[],hitos:[],catas:[]};
+}
+function migrateVends(saved){
+  if(!saved)return AÑOS_V.map(makeVendimia);
+  const byAño=Object.fromEntries(saved.map(v=>[v.año,v]));
+  return AÑOS_V.map(año=>{
+    const old=byAño[año];
+    if(!old)return makeVendimia(año);
+    // Already new structure (has añada-level campo array and vinos without medicionesCampo)
+    if(Array.isArray(old.campo)&&Array.isArray(old.fermentaciones))return old;
+    // Old structure: data inside vinos → migrate
+    const base=makeVendimia(año);
+    const newVinos=(old.vinos||[]).map(vn=>({
+      id:vn.id||uid(),nombre:vn.nombre||"Vino "+año,
+      fechaVendimia:vn.fechaVendimia||"",litros:vn.litros||0,
+      variedades:vn.variedades||[],notas:vn.notas||""
+    }));
+    const campo=[],sulfuroso=[],analisis=[],hitos=[];
+    (old.vinos||[]).forEach(vn=>{
+      const vid=vn.id;
+      (vn.medicionesCampo||[]).forEach(m=>campo.push({...m,vinoIds:[vid]}));
+      (vn.sulfuroso||[]).forEach(s=>sulfuroso.push({...s,vinoIds:[vid]}));
+      (vn.analisis||[]).forEach(a=>analisis.push({...a,vinoIds:[vid]}));
+      (vn.hitos||[]).forEach(h=>hitos.push({...h,vinoIds:[vid]}));
+    });
+    return{...base,vinos:newVinos,campo,sulfuroso,analisis,hitos};
+  });
+}
+function viñaKg(vn){return(vn.variedades||[]).reduce((s,va)=>s+(+va.kg||0),0);}
+function vendKg(v){return(v.viñas||[]).reduce((s,e)=>s+viñaKg(e),0);}
+function vendLitros(v){return(v.vinos||[]).reduce((s,vn)=>s+(+vn.litros||0),0);}
+
+/* ── Datos iniciales ─────────────────────────────────────────────── */
+const SOCIOS_DEF=[
+  {id:1,nombre:"Manuel",apodo:"(Padre)",rol:"Socio",nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""},
+  {id:2,nombre:"Manuel",apodo:"(Hijo)",rol:"Socio",nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""},
+  {id:3,nombre:"Gabriel",apodo:"",rol:"Socio",nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""},
+  {id:4,nombre:"Antonio",apodo:"",rol:"Socio",nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""},
+  {id:5,nombre:"Héctor",apodo:"",rol:"Socio",nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""},
+  {id:6,nombre:"Cristina",apodo:"",rol:"Socia",nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""},
+];
+const FAENAS_DEF=[
+  {id:10,año:2026,nombre:"Poda",emoji:"✂️",mes:"Enero",dia:"",desc:"Poda de invierno. Eliminación de sarmientos del año anterior."},
+  {id:20,año:2026,nombre:"Atado",emoji:"🪢",mes:"Febrero",dia:"",desc:"Atado de sarmientos sobre los alambres de la espaldera."},
+  {id:30,año:2026,nombre:"Embotellado",emoji:"🍾",mes:"Marzo",dia:"",desc:"Embotellado del vino anterior. Filtrado, llenado, corcho y etiquetado."},
+  {id:40,año:2026,nombre:"Limpieza de Bodega",emoji:"🧹",mes:"Marzo",dia:"",desc:"Limpieza general de bodega, toneles, depósitos y utillaje."},
+  {id:50,año:2026,nombre:"Tratamiento Fitosanitario",emoji:"💧",mes:"Mayo",dia:"",desc:"Tratamiento preventivo contra mildiu y oídio."},
+  {id:60,año:2026,nombre:"Desbrotado",emoji:"🌿",mes:"Mayo",dia:"",desc:"Eliminación de brotes no productivos para concentrar la savia."},
+  {id:70,año:2026,nombre:"Deshojado",emoji:"🍃",mes:"Julio",dia:"",desc:"Eliminación de hojas alrededor del racimo para favorecer la maduración."},
+  {id:80,año:2026,nombre:"Aclareo de racimos",emoji:"🍇",mes:"Agosto",dia:"",desc:"Eliminación de racimos en exceso para concentrar sabor y azúcar."},
+  {id:90,año:2026,nombre:"Vendimia",emoji:"🍇",mes:"Octubre",dia:"",desc:"Recogida manual de la uva. El momento más importante del año."},
+  {id:100,año:2026,nombre:"Prensado",emoji:"🔩",mes:"Octubre",dia:"",desc:"Despalillado, estrujado y prensado de la uva. Llenado de depósitos."},
+  {id:110,año:2026,nombre:"Fermentación y Trasiegos",emoji:"🍷",mes:"Noviembre",dia:"",desc:"Control de la fermentación. Remontados, temperatura y primer trasiego."},
+];
+const INV_CAT_DEF=[
+  {id:"embotellado",nombre:"Embotellado",emoji:"🍾",items:[]},
+  {id:"fermentacion",nombre:"Fermentación",emoji:"🫧",items:[]},
+  {id:"limpieza",nombre:"Limpieza",emoji:"🧹",items:[]},
+  {id:"general",nombre:"General de Bodega",emoji:"🏚️",items:[]},
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   COMPONENTES ESTABLES — guardan en onBlur
+══════════════════════════════════════════════════════════════════ */
+function SI({value,save,type="text",placeholder="",style={},min,max,step}){
+  const[v,setV]=useState(value!=null?String(value):"");
+  useEffect(()=>setV(value!=null?String(value):""),[value]);
+  return<input type={type} value={v} placeholder={placeholder} style={style} min={min} max={max} step={step}
+    onChange={e=>setV(e.target.value)} onBlur={e=>save(e.target.value)}/>;
+}
+function SN({value,save,placeholder="0",style={}}){
+  const[v,setV]=useState(value||"");
+  useEffect(()=>setV(value||""),[value]);
+  return<input type="number" value={v} placeholder={placeholder} style={style}
+    onChange={e=>setV(e.target.value)} onBlur={e=>save(+e.target.value)}/>;
+}
+function ST({value,save,rows=3,placeholder=""}){
+  const[v,setV]=useState(value||"");
+  useEffect(()=>setV(value||""),[value]);
+  return<textarea rows={rows} value={v} placeholder={placeholder}
+    onChange={e=>setV(e.target.value)} onBlur={e=>save(e.target.value)}/>;
+}
+function SD({value,save}){
+  function toISO(s){if(!s)return"";if(s.includes("-"))return s;const[d,m,y]=s.split("/");if(!d||!m||!y)return"";return`${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;}
+  const[v,setV]=useState(toISO(value)||"");
+  useEffect(()=>setV(toISO(value)||""),[value]);
+  return<input type="date" value={v} onChange={e=>{setV(e.target.value);save(e.target.value);}}/>;
+}
+
+/* ── Componentes UI ──────────────────────────────────────────────── */
+function Stars({value,onChange}){
+  return<div style={{display:"flex",gap:4,marginTop:4}}>{[1,2,3,4,5].map(n=><button key={n} onClick={()=>onChange(n)} style={{flex:1,height:20,borderRadius:3,border:"none",cursor:"pointer",background:n<=value?"var(--gold)":"rgba(232,168,32,.1)"}}/>)}</div>;
+}
+function Av({nombre,foto,size=44}){
+  if(foto)return<img src={foto} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:"1.5px solid var(--g35)"}}/>;
+  return<div style={{width:size,height:size,borderRadius:"50%",background:"#111",border:"1.5px solid var(--g35)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Montserrat",fontSize:size*.4,fontWeight:700,color:"var(--gold)",flexShrink:0}}>{(nombre||"?").charAt(0).toUpperCase()}</div>;
+}
+function SocioBotones({fid,socios,asist,toggle}){
+  return<div style={{display:"flex",flexWrap:"wrap",gap:6}}>{socios.map(sc=>{const st=asist[fid+"_"+sc.id]||"";return<button key={sc.id} className="sdot" title={(sc.nombre+(sc.apodo?" "+sc.apodo:""))+": "+ALBL[st]} style={{background:"var(--bg2)",border:"1.5px solid "+ABRD[st],borderRadius:5,padding:"5px 9px",display:"flex",alignItems:"center",gap:5}} onClick={()=>toggle(fid,sc.id)}><span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:500,color:"var(--tx2)"}}>{sc.nombre}</span>{sc.apodo&&<span style={{fontSize:9,color:"var(--tx3)"}}>{sc.apodo}</span>}<span style={{fontSize:13}}>{AICON[st]}</span></button>;})}</div>;
+}
+function EntradaLog({fecha,titulo,extra,driveLink,vinoBadges,onDel}){
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--br2)",borderRadius:5,padding:"9px 11px",display:"flex",alignItems:"flex-start",gap:8,marginBottom:6}}>
+      <div style={{flex:1}}>
+        {fecha&&<p style={{fontSize:10,color:"var(--gold)",fontWeight:600,marginBottom:2}}>📅 {showDate(fecha)}</p>}
+        {vinoBadges&&vinoBadges.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:4}}>{vinoBadges.map(n=><span key={n} style={{...S.MB,fontSize:8}}>🍷 {n}</span>)}</div>}
+        <p style={{fontSize:12,color:"var(--tx)",fontWeight:500}}>{titulo}</p>
+        {extra&&<p style={{fontSize:11,color:"var(--tx2)",marginTop:2}}>{extra}</p>}
+      </div>
+      {driveLink&&<button style={{background:"transparent",border:"none",cursor:"pointer",fontSize:20,flexShrink:0,padding:"0 4px"}} title="Abrir PDF" onClick={()=>window.open(driveLink,"_blank")}>📄</button>}
+      {onEdit&&<button className="be" style={{padding:"3px 8px",fontSize:10,flexShrink:0}} onClick={onEdit}>✏️</button>}
+      <button className="bd" style={{padding:"3px 8px",fontSize:10,flexShrink:0}} onClick={onDel}>✕</button>
+    </div>
+  );
+}
+// Selector multi-vino
+function VinosPicker({vinos,selected,onChange,label="Asignar a vino(s)"}){
+  if(!vinos||vinos.length===0)return<p style={{fontSize:11,color:"var(--tx3)",padding:"6px 0"}}>Crea vinos en la pestaña General para asignarlos.</p>;
+  return(
+    <div>
+      <span style={S.LB}>{label}</span>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:4}}>
+        {vinos.map(vn=>{const sel=(selected||[]).includes(vn.id);return<button key={vn.id} style={{background:sel?"var(--g20)":"transparent",border:"1px solid "+(sel?"var(--g50)":"var(--br2)"),borderRadius:5,padding:"5px 10px",cursor:"pointer",fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:sel?"var(--gold)":"var(--tx2)"}} onClick={()=>onChange(sel?(selected||[]).filter(x=>x!==vn.id):[...(selected||[]),vn.id])}>{vn.nombre}</button>;})}
+      </div>
+    </div>
+  );
+}
+// Selector mono-vino
+function VinoSingle({vinos,selected,onChange,label="Vino"}){
+  if(!vinos||vinos.length===0)return<p style={{fontSize:11,color:"var(--tx3)",padding:"6px 0"}}>Crea vinos en la pestaña General.</p>;
+  return(
+    <div>
+      <span style={S.LB}>{label}</span>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:4}}>
+        {vinos.map(vn=>{const sel=selected===vn.id;return<button key={vn.id} style={{background:sel?"var(--g20)":"transparent",border:"1px solid "+(sel?"var(--g50)":"var(--br2)"),borderRadius:5,padding:"5px 10px",cursor:"pointer",fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:sel?"var(--gold)":"var(--tx2)"}} onClick={()=>onChange(sel?"":vn.id)}>{vn.nombre}</button>;})}
+      </div>
+    </div>
+  );
+}
+
+/* ── Formularios aislados (estado local → sin re-renders de App) ── */
+function FormCampo({vinos,onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{fecha:todayISO(),alcoholProbable:"",ph:"",comentario:"",vinoIds:[]});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinosPicker vinos={vinos} selected={f.vinoIds} onChange={v=>setF(p=>({...p,vinoIds:v}))}/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,margin:"10px 0 8px"}}>
+        <div><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+        <div><span style={S.LB}>Alcohol prob. %</span><input value={f.alcoholProbable} onChange={s("alcoholProbable")} placeholder="—"/></div>
+        <div><span style={S.LB}>PH</span><input value={f.ph} onChange={s("ph")} placeholder="—"/></div>
+      </div>
+      <div style={{marginBottom:8}}><span style={S.LB}>Comentario</span><textarea rows={2} value={f.comentario} onChange={s("comentario")} placeholder="Observaciones…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>onSave({...f,id:f.id||uid()})}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormFerm({vinos,onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{fechaEncubado:todayISO(),horaEncubado:"",densidadEncubado:"",phEncubado:"",descripcion:"",vinoIds:[]});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinosPicker vinos={vinos} selected={f.vinoIds} onChange={v=>setF(p=>({...p,vinoIds:v}))}/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,margin:"10px 0 8px"}}>
+        <div><span style={S.LB}>Fecha encubado</span><input type="date" value={f.fechaEncubado} onChange={s("fechaEncubado")}/></div>
+        <div><span style={S.LB}>Hora encubado</span><input type="time" value={f.horaEncubado} onChange={s("horaEncubado")}/></div>
+        <div><span style={S.LB}>Densidad encubado</span><input value={f.densidadEncubado} onChange={s("densidadEncubado")} placeholder="g/L"/></div>
+        <div><span style={S.LB}>pH encubado</span><input value={f.phEncubado} onChange={s("phEncubado")} placeholder="—"/></div>
+      </div>
+      <div style={{marginBottom:8}}><span style={S.LB}>Descripción</span><textarea rows={2} value={f.descripcion||""} onChange={s("descripcion")} placeholder="Observaciones del encubado…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>onSave({...f,id:f.id||uid(),anotaciones:f.anotaciones||[]})}>Guardar ficha</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormAnot({onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{fecha:todayISO(),densidad:"",descripcion:""});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+        <div><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+        <div><span style={S.LB}>Densidad</span><input value={f.densidad} onChange={s("densidad")} placeholder="g/L"/></div>
+      </div>
+      <div style={{marginBottom:8}}><span style={S.LB}>Descripción</span><textarea rows={2} value={f.descripcion} onChange={s("descripcion")} placeholder="Estado de la fermentación…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>onSave({...f,id:f.id||uid()})}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormSulf({vinos,onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{fecha:todayISO(),dosis:"",comentario:"",vinoIds:[]});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinosPicker vinos={vinos} selected={f.vinoIds} onChange={v=>setF(p=>({...p,vinoIds:v}))}/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,margin:"10px 0 8px"}}>
+        <div><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+        <div><span style={S.LB}>Dosis mg/L</span><input value={f.dosis} onChange={s("dosis")} placeholder="—"/></div>
+      </div>
+      <div style={{marginBottom:8}}><span style={S.LB}>Comentario</span><textarea rows={2} value={f.comentario} onChange={s("comentario")} placeholder="Estado del vino, motivo…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>onSave({...f,id:f.id||uid()})}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormAnal({vinos,onSave,onCancel,initialData}){
+  const empty=Object.fromEntries(CAMPOS_AN.map(([,k])=>[k,""]));
+  const[f,setF]=useState(initialData?{...initialData}:{fecha:todayISO(),...empty,driveLink:"",vinoIds:[]});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinosPicker vinos={vinos} selected={f.vinoIds} onChange={v=>setF(p=>({...p,vinoIds:v}))}/>
+      <div style={{marginTop:10,marginBottom:8}}><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,marginBottom:8}}>
+        {CAMPOS_AN.map(([label,key,unit])=><div key={key}><span style={S.LB}>{label}{unit?" ("+unit+")":""}</span><input value={f[key]} onChange={s(key)} placeholder="—"/></div>)}
+      </div>
+      <div style={{marginBottom:8}}>
+        <span style={S.LB}>📄 Enlace Google Drive</span>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <input value={f.driveLink} onChange={s("driveLink")} placeholder="https://drive.google.com/…" style={{flex:1}}/>
+          {f.driveLink&&<button className="be" style={{flexShrink:0,fontSize:18,padding:"5px 8px"}} onClick={()=>window.open(f.driveLink,"_blank")} title="Abrir PDF">📄</button>}
+        </div>
+      </div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>onSave({...f,id:f.id||uid()})}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormHito({vinos,onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{fecha:todayISO(),descripcion:"",vinoIds:[]});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinosPicker vinos={vinos} selected={f.vinoIds} onChange={v=>setF(p=>({...p,vinoIds:v}))}/>
+      <div style={{margin:"10px 0 8px"}}><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+      <div style={{marginBottom:8}}><span style={S.LB}>Descripción</span><textarea rows={2} value={f.descripcion} onChange={s("descripcion")} placeholder="Primer trasiego, filtración…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>{if(!f.descripcion)return;onSave({...f,id:f.id||uid()});}}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormCata({vinos,onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{fecha:todayISO(),vinoId:"",notaCata:""});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinoSingle vinos={vinos} selected={f.vinoId} onChange={v=>setF(p=>({...p,vinoId:v}))} label="Vino catado"/>
+      <div style={{margin:"10px 0 8px"}}><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+      <div style={{marginBottom:8}}><span style={S.LB}>Nota de Cata</span><textarea rows={4} value={f.notaCata} onChange={s("notaCata")} placeholder="Aromas, sabores, estructura, final de boca…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>{if(!f.notaCata)return;onSave({...f,id:f.id||uid()});}}>Guardar cata</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormViña({vinos,onSave,onCancel,initialData}){
+  const[f,setF]=useState(initialData?{...initialData}:{viñaNombre:"Grío",variedades:[{variedad:"Garnacha",kg:0}],vinoIds:[]});
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginTop:8}}>
+      <VinosPicker vinos={vinos} selected={f.vinoIds} onChange={v=>setF(p=>({...p,vinoIds:v}))}/>
+      <div style={{margin:"10px 0 8px"}}>
+        <span style={S.LB}>Viña</span>
+        <div style={{display:"flex",gap:6}}>{VIÑAS_N.map(n=><button key={n} style={{background:f.viñaNombre===n?"var(--g20)":"transparent",border:"1px solid "+(f.viñaNombre===n?"var(--g50)":"var(--br2)"),borderRadius:5,padding:"5px 12px",cursor:"pointer",fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:f.viñaNombre===n?"var(--gold)":"var(--tx2)"}} onClick={()=>setF(p=>({...p,viñaNombre:n}))}>{n}</button>)}</div>
+      </div>
+      <span style={S.LB}>Variedades</span>
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 28px",gap:6,marginBottom:4,marginTop:4}}>
+        <span style={{fontSize:9,fontWeight:600,letterSpacing:".1em",textTransform:"uppercase",color:"var(--tx3)"}}>Variedad</span>
+        <span style={{fontSize:9,fontWeight:600,letterSpacing:".1em",textTransform:"uppercase",color:"var(--tx3)"}}>Kg</span>
+        <span/>
+      </div>
+      {f.variedades.map((va,j)=>(
+        <div key={j} style={{display:"grid",gridTemplateColumns:"2fr 1fr 28px",gap:6,marginBottom:6}}>
+          <select value={va.variedad} onChange={e=>{const nvs=[...f.variedades];nvs[j]={...va,variedad:e.target.value};setF(p=>({...p,variedades:nvs}));}}>{VARIEDADES.map(v=><option key={v}>{v}</option>)}</select>
+          <input type="number" value={va.kg||""} placeholder="0" onChange={e=>{const nvs=[...f.variedades];nvs[j]={...va,kg:+e.target.value};setF(p=>({...p,variedades:nvs}));}}/>
+          {f.variedades.length>1?<button className="bd" style={{padding:"3px",fontSize:12,textAlign:"center"}} onClick={()=>setF(p=>({...p,variedades:p.variedades.filter((_,k)=>k!==j)}))}>✕</button>:<span/>}
+        </div>
+      ))}
+      <button className="be" style={{width:"100%",padding:6,marginBottom:10}} onClick={()=>setF(p=>({...p,variedades:[...p.variedades,{variedad:"Garnacha",kg:0}]}))}>+ Añadir variedad</button>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>onSave({...f,id:f.id||uid()})}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+function FormGasto({onSave,onCancel,añoDefault}){
+  const[f,setF]=useState({fecha:todayISO(),concepto:"",categoria:"general",año:añoDefault?String(añoDefault):"",importe:"",notas:""});
+  const s=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  return(
+    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12,marginBottom:12}}>
+      <p style={{...S.H3,marginBottom:12}}>Nuevo gasto</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+        <div style={{gridColumn:"1/-1"}}><span style={S.LB}>Concepto</span><input value={f.concepto} onChange={s("concepto")} placeholder="Azufre, corchos, botellas…"/></div>
+        <div><span style={S.LB}>Importe €</span><input type="number" step="0.01" value={f.importe} onChange={s("importe")} placeholder="0.00"/></div>
+        <div><span style={S.LB}>Fecha</span><input type="date" value={f.fecha} onChange={s("fecha")}/></div>
+        <div style={{gridColumn:"1/-1"}}><span style={S.LB}>Añada</span><select value={f.año} onChange={s("año")}><option value="">Sin añada</option>{AÑOS_V.map(a=><option key={a} value={String(a)}>{a}</option>)}</select></div>
+      </div>
+      <div style={{marginBottom:10}}>
+        <span style={S.LB}>Categoría</span>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:4}}>
+          {CATS_ECO.map(c=><button key={c.id} style={{background:f.categoria===c.id?"var(--g20)":"transparent",border:"1px solid "+(f.categoria===c.id?"var(--g50)":"var(--br2)"),borderRadius:5,padding:"5px 8px",cursor:"pointer",display:"flex",alignItems:"center",gap:4}} onClick={()=>setF(p=>({...p,categoria:c.id}))}><span style={{fontSize:13}}>{c.emoji}</span><span style={{fontFamily:"Montserrat",fontSize:9,fontWeight:600,color:f.categoria===c.id?"var(--gold)":"var(--tx2)"}}>{c.label}</span></button>)}
+        </div>
+      </div>
+      <div style={{marginBottom:10}}><span style={S.LB}>Notas</span><input value={f.notas} onChange={s("notas")} placeholder="Opcional…"/></div>
+      <div style={{display:"flex",gap:8}}><button className="bg" onClick={()=>{if(!f.concepto||!f.importe)return;onSave({id:uid(),...f,importe:+f.importe});}}>Guardar</button><button className="bo" onClick={onCancel}>Cancelar</button></div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   APP
+══════════════════════════════════════════════════════════════════ */
+function App(){
+  const[tab,      setTab]     =useState("inicio");
+  const[socios,   setSocios]  =useState(()=>load("o8_s",SOCIOS_DEF).map(sc=>({nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:"",...sc})));
+  const[vends,    setVends]   =useState(()=>migrateVends(load("o8_v",null)));
+  const[faenas,   setFaenas]  =useState(()=>load("o8_f",FAENAS_DEF).map(x=>({año:2026,...x})));
+  const[asist,    setAsist]   =useState(()=>load("o8_a",{}));
+  const[invCat,   setInvCat]  =useState(()=>load("o8_ic",INV_CAT_DEF));
+  const[gastos,   setGastos]  =useState(()=>load("o8_g",[]));
+  const[bodega,   setBodega]  =useState(()=>load("o8_b","Bodega Orioles"));
+  const[lema,     setLema]    =useState(()=>load("o8_l","Quebracántaros · Valdejalón"));
+  const[editMode, setEditMode]=useState(false);
+  const[pin,      setPin]     =useState(()=>load("o8_pin","1234"));
+  // Vendimias nav
+  const[openV,    setOpenV]   =useState(null); // año abierto
+  const[vTab,     setVTab]    =useState("general"); // tab de añada
+  const[expandV,  setExpandV] =useState({}); // {vinoId: bool}
+  const[openFerm, setOpenFerm]=useState(null); // fermId expandida
+  const[openAnalId,setOpenAnalId]=useState(null);
+  // Form shows (vendimias)
+  const[frmGen,   setFrmGen]  =useState(false);
+  const[frmViña,  setFrmViña] =useState(false);
+  const[frmCampo, setFrmCampo]=useState(false);
+  const[frmFerm,  setFrmFerm] =useState(false);
+  const[frmAnot,  setFrmAnot] =useState(null); // fermId
+  const[frmSulf,  setFrmSulf] =useState(false);
+  const[frmAnal,  setFrmAnal] =useState(false);
+  const[frmHito,  setFrmHito] =useState(false);
+  const[frmCata,  setFrmCata] =useState(false);
+  // Editing states (null = no editing, id = entry being edited)
+  const[editCampo, setEditCampo]=useState(null);
+  const[editViña,  setEditViña] =useState(null);
+  const[editSulf,  setEditSulf] =useState(null);
+  const[editAnal,  setEditAnal] =useState(null);
+  const[editHito,  setEditHito] =useState(null);
+  const[editCata,  setEditCata] =useState(null);
+  const[editFerm,  setEditFerm] =useState(null);
+  const[editAnot,  setEditAnot] =useState(null); // {fermId,anotId}
+  // Faenas
+  const[fYear,    setFYear]   =useState(2026);
+  const[editFmes, setEditFmes]=useState(null);
+  const[addF,     setAddF]    =useState(false);
+  const[nF,       setNF]      =useState({nombre:"",emoji:"",mes:"Enero",desc:""});
+  // Socios
+  const[openSocio,setOpenSocio]=useState(null);
+  const[addS,     setAddS]    =useState(false);
+  const[nS,       setNS]      =useState({nombre:"",apodo:"",rol:"Socio"});
+  // Inventario
+  const[openCat,  setOpenCat] =useState(null);
+  const[addItem,  setAddItem] =useState(null);
+  const[nItem,    setNItem]   =useState({nombre:"",unidades:""});
+  const[editItem, setEditItem]=useState(null);
+  // Economía
+  const[ecoAño,   setEcoAño]  =useState(0);
+  const[showGasto,setShowGasto]=useState(false);
+  const[botAnual, setBotAnual]=useState(()=>load("o8_bot",{}));
+
+  useEffect(()=>{localStorage.setItem("o8_s",  JSON.stringify(socios));},[socios]);
+  useEffect(()=>{localStorage.setItem("o8_v",  JSON.stringify(vends)); },[vends]);
+  useEffect(()=>{localStorage.setItem("o8_f",  JSON.stringify(faenas));},[faenas]);
+  useEffect(()=>{localStorage.setItem("o8_a",  JSON.stringify(asist)); },[asist]);
+  useEffect(()=>{localStorage.setItem("o8_ic", JSON.stringify(invCat));},[invCat]);
+  useEffect(()=>{localStorage.setItem("o8_g",  JSON.stringify(gastos)); },[gastos]);
+  useEffect(()=>{localStorage.setItem("o8_b",  JSON.stringify(bodega)); },[bodega]);
+  useEffect(()=>{localStorage.setItem("o8_l",  JSON.stringify(lema));   },[lema]);
+  useEffect(()=>{localStorage.setItem("o8_pin",JSON.stringify(pin));    },[pin]);
+  useEffect(()=>{localStorage.setItem("o8_bot",JSON.stringify(botAnual));},[botAnual]);
+  useEffect(()=>{document.body.classList.toggle("locked",!editMode);return()=>document.body.classList.remove("locked");},[editMode]);
+
+  // General helpers
+  const ga=(fid,sid)=>asist[fid+"_"+sid]||"";
+  const ta=(fid,sid)=>{const k=fid+"_"+sid;setAsist(p=>({...p,[k]:NEXT[p[k]||""]}));};
+  const sf=(id,k,val)=>setFaenas(p=>p.map(x=>x.id===id?{...x,[k]:val}:x));
+  const ss=(id,k,val)=>setSocios(p=>p.map(x=>x.id===id?{...x,[k]:val}:x));
+  // Vendimias helpers
+  const getV=()=>vends.find(x=>x.año===openV)||null;
+  const updV=fn=>setVends(p=>p.map(v=>v.año===openV?fn(v):v));
+  const updVino=(vinoId,k,val)=>updV(v=>({...v,vinos:v.vinos.map(vn=>vn.id===vinoId?{...vn,[k]:val}:vn)}));
+  const updFerm=(fermId,fn)=>updV(v=>({...v,fermentaciones:v.fermentaciones.map(f=>f.id===fermId?fn(f):f)}));
+  const delEntry=(field,id)=>updV(v=>({...v,[field]:v[field].filter(x=>x.id!==id)}));
+  function getVinoNames(v,vinoIds){return(vinoIds||[]).map(id=>v.vinos.find(vn=>vn.id===id)?.nombre).filter(Boolean);}
+
+  const updEntry=(field,id,data)=>updV(v=>({...v,[field]:v[field].map(e=>e.id===id?{...e,...data}:e)}));
+  const updFermAnot=(fermId,anotId,data)=>updV(v=>({...v,fermentaciones:v.fermentaciones.map(f=>f.id===fermId?{...f,anotaciones:(f.anotaciones||[]).map(a=>a.id===anotId?{...a,...data}:a)}:f)}));
+  const updFermEntry=(fermId,data)=>updV(v=>({...v,fermentaciones:v.fermentaciones.map(f=>f.id===fermId?{...f,...data}:f)}));
+
+  function handleLock(){
+    if(editMode){setEditMode(false);}
+    else{const p=window.prompt("Introduce el PIN de edición:");if(p===null)return;if(p===pin){setEditMode(true);}else alert("PIN incorrecto.");}
+  }
+
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const conDatos=vends.filter(v=>vendLitros(v)>0||vendKg(v)>0);
+  const maxL=Math.max(...conDatos.map(v=>vendLitros(v)),1);
+  const mejor=[...conDatos].sort((a,b)=>vendLitros(b)-vendLitros(a))[0]||null;
+  const fSort=[...faenas].filter(f=>f.año===fYear).sort((a,b)=>MORD[a.mes]-MORD[b.mes]||a.id-b.id);
+  const mesActual=new Date().getMonth();
+  const proximas=(()=>{
+    const cf=[...faenas].map(f=>({...f,_d:parseDate(f.dia)})).filter(f=>f._d&&f._d>=hoy).sort((a,b)=>a._d-b._d);
+    if(cf.length>=2)return cf.slice(0,2);
+    const sf2=[...faenas].filter(f=>!parseDate(f.dia)).sort((a,b)=>MORD[a.mes]-MORD[b.mes]||a.id-b.id).filter(f=>MORD[f.mes]>=mesActual);
+    return[...cf,...sf2].slice(0,2);
+  })();
+
+  const TABS=[
+    {id:"inicio",l:"Inicio"},{id:"vendimias",l:"Vendimias"},{id:"faenas",l:"Faenas"},
+    {id:"inventario",l:"Inventario"},{id:"economia",l:"Economía"},
+    {id:"socios",l:"Socios"},{id:"idiosincrasia",l:"Idiosincrasia"},
+  ];
+
+  /* ══ INICIO ══════════════════════════════════════════════════════ */
+  function Inicio(){
+    const totL=conDatos.reduce((s,v)=>s+vendLitros(v),0);
+    const totK=conDatos.reduce((s,v)=>s+vendKg(v),0);
+    return(
+      <div className="fade">
+        <div style={{textAlign:"center",padding:"28px 0 24px",borderBottom:"1px solid var(--br2)",marginBottom:22}}>
+          <OriLogo size={62}/>
+          <h1 style={{fontFamily:"Montserrat",fontSize:26,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",marginTop:14,lineHeight:1}}>{bodega}</h1>
+          <p style={{fontFamily:"Montserrat",fontSize:10,fontWeight:500,letterSpacing:".18em",textTransform:"uppercase",color:"var(--tx2)",marginTop:6}}>{lema}</p>
+          <p style={{fontFamily:"Montserrat",fontSize:9,color:"var(--tx3)",marginTop:3,letterSpacing:".1em",textTransform:"uppercase"}}>{socios.length} socios · desde 2020</p>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:24}}>
+          {[["⚖️",totK>0?totK.toLocaleString()+"kg":"—","Uva"],["🍶",totL>0?totL.toLocaleString()+"L":"—","Vino"],["📆",String(vends.length),"Vendimias"],["👥",String(socios.length),"Socios"]].map(([ic,v,l],i)=>(
+            <div key={i} style={{...S.C,textAlign:"center",padding:"12px 6px"}}>
+              <p style={{fontSize:20,marginBottom:3}}>{ic}</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:19,color:"var(--gold)",lineHeight:1}}>{v}</p>
+              <p style={{fontSize:9,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:"var(--tx3)",marginTop:3}}>{l}</p>
+            </div>
+          ))}
+        </div>
+        <p style={S.H3}>📅 Próximas faenas</p>
+        {proximas.length===0
+          ?<div style={{...S.C,textAlign:"center",padding:20,marginBottom:22}}><p style={{fontSize:12,color:"var(--tx3)"}}>Ve a Faenas y fija las fechas para verlas aquí.</p></div>
+          :<div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+            {proximas.map((f,idx)=>{
+              const dias=diasR(f.dia);const conf=socios.filter(sc=>ga(f.id,sc.id)==="si").length;
+              const[exp,setExp]=useState(false);
+              const dc=dias===null?"var(--tx3)":dias===0?"rgba(255,220,50,.95)":dias<0?"rgba(200,80,80,.8)":dias<=7?"rgba(255,150,50,.9)":dias<=30?"var(--gold)":"var(--tx3)";
+              return(
+                <div key={f.id} style={{...S.C,border:"1px solid "+(idx===0?"var(--g35)":"var(--br)")}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:5}}>
+                        {idx===0&&<span style={{...S.MB,background:"rgba(232,168,32,.2)"}} className="blink">PRÓXIMA</span>}
+                        <span style={{fontSize:17}}>{f.emoji}</span>
+                        <span style={{fontFamily:"Montserrat",fontSize:13,fontWeight:700,color:"var(--tx)"}}>{f.nombre}</span>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                        {f.dia?<span style={{fontSize:11,color:"var(--gold)",fontWeight:600}}>📅 {showDate(f.dia)}</span>:<span style={{fontSize:11,color:"var(--tx3)"}}>Sin fecha · {f.mes}</span>}
+                        {dias!==null&&f.dia&&<span style={{fontSize:10,fontWeight:700,color:dc}}>{dias===0?"¡HOY!":dias<0?"Hace "+Math.abs(dias)+"d":dias===1?"Mañana":"En "+dias+"d"}</span>}
+                      </div>
+                    </div>
+                    <div style={{textAlign:"center",background:"var(--g10)",border:"1px solid var(--g20)",borderRadius:5,padding:"7px 9px",flexShrink:0,minWidth:46}}>
+                      <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{conf}</p>
+                      <p style={{fontSize:9,color:"var(--tx3)",fontWeight:600}}>/{socios.length} sí</p>
+                    </div>
+                  </div>
+                  <SocioBotones fid={f.id} socios={socios} asist={asist} toggle={ta}/>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginTop:10}}>
+                    <p style={{fontSize:11,color:"var(--tx3)",lineHeight:1.5,flex:1,marginRight:8}}>{exp?f.desc:f.desc.slice(0,60)+(f.desc.length>60?"…":"")}</p>
+                    <button className="be" style={{fontSize:9,flexShrink:0}} onClick={()=>setExp(!exp)}>{exp?"Menos":"Ver más"}</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        }
+        {conDatos.length>0&&(
+          <>
+            <p style={S.H3}>Producción por año</p>
+            <div style={{...S.C,marginBottom:22}}>
+              {[...conDatos].sort((a,b)=>a.año-b.año).map(v=>(
+                <div key={v.año} style={{display:"flex",alignItems:"center",gap:8,marginBottom:9}}>
+                  <span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:"var(--gold)",width:34,flexShrink:0}}>{v.año}</span>
+                  <div style={{flex:1,height:22,background:"rgba(255,255,255,.04)",borderRadius:4,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:(vendLitros(v)/maxL*100)+"%",background:"linear-gradient(90deg,rgba(232,168,32,.5),var(--gold))",borderRadius:4,display:"flex",alignItems:"center",paddingLeft:7}}>
+                      <span style={{fontSize:10,fontWeight:700,color:"#0D0D0D"}}>{vendLitros(v)}L</span>
+                    </div>
+                  </div>
+                  <span style={{fontSize:10,color:"var(--tx3)",width:46,textAlign:"right",flexShrink:0}}>{vendKg(v)}kg</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        <p style={S.H3}>Los socios</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
+          {socios.map(sc=>(
+            <div key={sc.id} style={{display:"flex",alignItems:"center",gap:8,...S.C,padding:"9px 13px",flex:"1 1 auto",minWidth:130,cursor:"pointer"}} onClick={()=>{setTab("socios");setOpenSocio(sc.id);}}>
+              <Av nombre={sc.nombre} foto={sc.foto} size={34}/>
+              <div><p style={{fontFamily:"Montserrat",fontSize:13,fontWeight:600,color:"var(--tx)"}}>{sc.nombre}{sc.apodo?" "+sc.apodo:""}</p><p style={{fontSize:10,color:"var(--gold)",textTransform:"uppercase",letterSpacing:".06em"}}>{sc.rol}</p></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* ══ VENDIMIAS ════════════════════════════════════════════════════ */
+  function Vendimias(){
+    if(openV!==null){const v=getV();if(v)return<AñadaFicha v={v}/>;}
+    return<AñadaList/>;
+  }
+
+  function AñadaList(){
+    return(
+      <div className="fade">
+        <h2 style={S.H2}>Vendimias</h2>
+        <p style={S.DSC}>Selecciona una añada para gestionar sus vinos y datos</p>
+        {vends.map(v=>{
+          const litT=vendLitros(v);const kgT=vendKg(v);const nVinos=(v.vinos||[]).length;
+          return(
+            <div key={v.año} className="card" style={{...S.C,marginBottom:8,cursor:"pointer"}} onClick={()=>{setOpenV(v.año);setVTab("general");}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                    <span style={{fontFamily:"'Crimson Pro',serif",fontSize:32,color:"var(--gold)",lineHeight:1}}>{v.año}</span>
+                    {mejor&&v.año===mejor.año&&litT>0&&<span style={S.TG}>🏆 MEJOR</span>}
+                    {litT===0&&kgT===0&&<span style={{fontSize:10,color:"var(--tx3)"}}>Sin datos</span>}
+                  </div>
+                  <p style={{fontSize:11,color:"var(--tx2)",marginBottom:6}}>{nVinos} {nVinos===1?"vino":"vinos"} · {(v.catas||[]).length} catas · {(v.analisis||[]).length} análisis</p>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4}}>{(v.vinos||[]).map(vn=><span key={vn.id} style={S.TG}>{vn.nombre}</span>)}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  {litT>0&&<p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--tx)"}}>{litT} L</p>}
+                  {kgT>0&&<p style={{fontSize:11,color:"var(--tx2)"}}>{kgT} kg</p>}
+                  <p style={{fontSize:10,color:"var(--gold)",marginTop:8}}>▶ Abrir</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function AñadaFicha({v}){
+    function VinoBadges({vinoIds}){
+      const names=getVinoNames(v,vinoIds);
+      return names.length?<div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:4}}>{names.map(n=><span key={n} style={{...S.MB,fontSize:8}}>🍷 {n}</span>)}</div>:null;
+    }
+
+    // ── GENERAL tab ──────────────────────────────────────────────
+    function TabGeneral(){
+      const[nuevoNombre,setNuevoNombre]=useState("");
+      return(
+        <div>
+          <p style={S.DSC}>Los vinos de esta añada. Pulsa el título para colapsar/expandir la ficha.</p>
+          {(v.vinos||[]).length===0&&!frmGen&&(
+            <div style={{...S.C,textAlign:"center",padding:24,marginBottom:12}}>
+              <p style={{fontSize:12,color:"var(--tx3)"}}>Sin vinos creados. Añade el primero.</p>
+            </div>
+          )}
+          {(v.vinos||[]).map(vn=>{
+            const exp=expandV[vn.id]!==false; // default expanded
+            return(
+              <div key={vn.id} style={{...S.C,marginBottom:10}}>
+                {/* Cabecera colapsable */}
+                <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>setExpandV(p=>({...p,[vn.id]:!exp}))}>
+                  <span style={{fontSize:11,color:"var(--gold)"}}>{exp?"▼":"▶"}</span>
+                  <span style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",flex:1}}>{vn.nombre}</span>
+                  {vn.litros>0&&<span style={{fontSize:11,color:"var(--tx2)"}}>{vn.litros}L</span>}
+                  <button className="bd" style={{padding:"3px 8px",fontSize:10}} onClick={e=>{e.stopPropagation();if(window.confirm("¿Eliminar el vino '"+vn.nombre+"'?"))updV(vv=>({...vv,vinos:vv.vinos.filter(x=>x.id!==vn.id)}));}}>✕</button>
+                </div>
+                {/* Ficha expandida */}
+                {exp&&(
+                  <div style={{marginTop:12}}>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                      <div><span style={S.LB}>Nombre del vino</span><SI value={vn.nombre} save={val=>updVino(vn.id,"nombre",val)}/></div>
+                      <div><span style={S.LB}>Fecha de vendimia</span><SD value={vn.fechaVendimia||""} save={val=>updVino(vn.id,"fechaVendimia",val)}/></div>
+                      <div><span style={S.LB}>Litros de vino</span><SN value={vn.litros||""} save={val=>updVino(vn.id,"litros",val)} placeholder="0"/></div>
+                    </div>
+                    <div style={{marginBottom:10}}>
+                      <span style={S.LB}>Variedades</span>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:4}}>
+                        {VARIEDADES.map(va=>{const sel=(vn.variedades||[]).includes(va);return<button key={va} style={{background:sel?"var(--g20)":"transparent",border:"1px solid "+(sel?"var(--g50)":"var(--br2)"),borderRadius:5,padding:"5px 12px",cursor:"pointer",fontFamily:"Montserrat",fontSize:11,fontWeight:600,color:sel?"var(--gold)":"var(--tx2)"}} onClick={()=>{const c=vn.variedades||[];updVino(vn.id,"variedades",sel?c.filter(x=>x!==va):[...c,va]);}}>{va}</button>;})}
+                      </div>
+                    </div>
+                    <div><span style={S.LB}>Descripción de la añada</span><ST value={vn.notas||""} save={val=>updVino(vn.id,"notas",val)} rows={3} placeholder="Condiciones climáticas, características generales…"/></div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {frmGen?(
+            <div style={{...S.C,marginTop:8,background:"rgba(232,168,32,.04)"}}>
+              <p style={{...S.H3,marginBottom:10}}>Nombre del nuevo vino</p>
+              <input value={nuevoNombre} onChange={e=>setNuevoNombre(e.target.value)} placeholder="Ej: Garnacha Joven 2026" style={{marginBottom:10}}/>
+              <div style={{display:"flex",gap:8}}>
+                <button className="bg" onClick={()=>{if(!nuevoNombre.trim())return;const nv=makeVino(nuevoNombre.trim());updV(vv=>({...vv,vinos:[...vv.vinos,nv]}));setNuevoNombre("");setFrmGen(false);setExpandV(p=>({...p,[nv.id]:true}));}}>Crear vino</button>
+                <button className="bo" onClick={()=>setFrmGen(false)}>Cancelar</button>
+              </div>
+            </div>
+          ):<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmGen(true)}>+ Crear vino</button>}
+        </div>
+      );
+    }
+
+    // ── VIÑAS tab ─────────────────────────────────────────────────
+    function TabViñas(){
+      return(
+        <div>
+          <p style={S.DSC}>Kg de uva por viña y variedad, asignados a cada vino.</p>
+          {(v.viñas||[]).length===0&&!frmViña&&<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",margin:"16px 0"}}>Sin entradas de viña.</p>}
+          {(v.viñas||[]).map(e=>editViña===e.id?(
+            <FormViña key={e.id} vinos={v.vinos||[]} initialData={e}
+              onSave={data=>{updEntry("viñas",e.id,data);setEditViña(null);}}
+              onCancel={()=>setEditViña(null)}/>
+          ):(
+            <EntradaLog key={e.id} fecha="" titulo={e.viñaNombre+" — "+e.variedades.map(va=>va.variedad+" "+va.kg+"kg").join(", ")} extra={"Total: "+viñaKg(e)+" kg"} vinoBadges={getVinoNames(v,e.vinoIds)} onEdit={()=>setEditViña(e.id)} onDel={()=>delEntry("viñas",e.id)}/>
+          ))}
+          {frmViña?<FormViña vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,viñas:[...(vv.viñas||[]),data]}));setFrmViña(false);}} onCancel={()=>setFrmViña(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmViña(true)}>+ Añadir entrada de viña</button>}
+        </div>
+      );
+    }
+
+    // ── CAMPO tab ─────────────────────────────────────────────────
+    function TabCampo(){
+      return(
+        <div>
+          <p style={S.DSC}>Mediciones de campo: alcohol probable y PH. Asigna a uno o varios vinos.</p>
+          {(v.campo||[]).length===0&&!frmCampo&&<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",margin:"16px 0"}}>Sin mediciones.</p>}
+          {(v.campo||[]).map(e=>editCampo===e.id?(
+            <FormCampo key={e.id} vinos={v.vinos||[]} initialData={e}
+              onSave={data=>{updEntry("campo",e.id,data);setEditCampo(null);}}
+              onCancel={()=>setEditCampo(null)}/>
+          ):(
+            <EntradaLog key={e.id} fecha={e.fecha} titulo={"Alc. prob.: "+(e.alcoholProbable||"—")+"% · PH: "+(e.ph||"—")} extra={e.comentario} vinoBadges={getVinoNames(v,e.vinoIds)} onEdit={()=>setEditCampo(e.id)} onDel={()=>delEntry("campo",e.id)}/>
+          ))}
+          {frmCampo?<FormCampo vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,campo:[...(vv.campo||[]),data]}));setFrmCampo(false);}} onCancel={()=>setFrmCampo(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmCampo(true)}>+ Añadir medición de campo</button>}
+        </div>
+      );
+    }
+
+    // ── FERMENTACIÓN tab ──────────────────────────────────────────
+    function TabFerm(){
+      const ferms=v.fermentaciones||[];
+      return(
+        <div>
+          <p style={S.DSC}>Fichas de fermentación con seguimiento de densidad.</p>
+          {ferms.map(ferm=>{
+            if(editFerm===ferm.id)return(
+              <FormFerm key={ferm.id} vinos={v.vinos||[]} initialData={ferm}
+                onSave={data=>{updFermEntry(ferm.id,data);setEditFerm(null);}}
+                onCancel={()=>setEditFerm(null)}/>
+            );
+            const isO=openFerm===ferm.id;
+            const names=getVinoNames(v,ferm.vinoIds);
+            return(
+              <div key={ferm.id} style={{marginBottom:isO?0:10}}>
+                <div className={"vc card "+(isO?"op":"")} style={{...S.C}} onClick={()=>setOpenFerm(isO?null:ferm.id)}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                    <div style={{flex:1}}>
+                      {names.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:6}}>{names.map(n=><span key={n} style={{...S.MB,fontSize:8}}>🍷 {n}</span>)}</div>}
+                      <p style={{fontFamily:"Montserrat",fontSize:13,fontWeight:700,color:"var(--tx)",marginBottom:4}}>Encubado: {showDate(ferm.fechaEncubado)}{ferm.horaEncubado?" "+ferm.horaEncubado:""}</p>
+                      <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                        {ferm.densidadEncubado&&<span style={{fontSize:11,color:"var(--tx2)"}}>Densidad enc.: <span style={{color:"var(--gold)",fontWeight:600}}>{ferm.densidadEncubado} g/L</span></span>}
+                        {ferm.phEncubado&&<span style={{fontSize:11,color:"var(--tx2)"}}>pH enc.: <span style={{color:"var(--gold)",fontWeight:600}}>{ferm.phEncubado}</span></span>}
+                        {ferm.descripcion&&<span style={{fontSize:11,color:"var(--tx2)"}}>{ferm.descripcion}</span>}
+                      </div>
+                      <p style={{fontSize:10,color:"var(--tx3)",marginTop:4}}>{(ferm.anotaciones||[]).length} anotaciones</p>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+                      <span style={{fontSize:10,color:"var(--gold)"}}>{isO?"▲":"▼"}</span>
+                      <button className="be" style={{padding:"3px 8px",fontSize:10}} onClick={e=>{e.stopPropagation();setOpenFerm(null);setEditFerm(ferm.id);}}>✏️</button>
+                      <button className="bd" style={{padding:"3px 8px",fontSize:10}} onClick={e=>{e.stopPropagation();if(window.confirm("¿Eliminar esta ficha?"))delEntry("fermentaciones",ferm.id);}}>✕</button>
+                    </div>
+                  </div>
+                </div>
+                {isO&&(
+                  <div style={S.DB}>
+                    <p style={{...S.H3,marginBottom:10,fontSize:10}}>Anotaciones de seguimiento</p>
+                    {(ferm.anotaciones||[]).length===0&&frmAnot!==ferm.id&&<p style={{fontSize:12,color:"var(--tx3)",marginBottom:10}}>Sin anotaciones aún.</p>}
+                    {(ferm.anotaciones||[]).map(an=>(
+                      <div key={an.id} style={{background:"var(--bg)",border:"1px solid var(--br2)",borderRadius:5,padding:"8px 10px",marginBottom:6,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                        <div>
+                          {an.fecha&&<p style={{fontSize:10,color:"var(--gold)",fontWeight:600,marginBottom:2}}>📅 {showDate(an.fecha)}</p>}
+                          {an.densidad&&<p style={{fontSize:12,color:"var(--tx)"}}>Densidad: <span style={{color:"var(--gold)",fontWeight:600}}>{an.densidad} g/L</span></p>}
+                          {an.descripcion&&<p style={{fontSize:11,color:"var(--tx2)",marginTop:2}}>{an.descripcion}</p>}
+                        </div>
+                        <div style={{display:"flex",gap:4,flexShrink:0,marginLeft:8}}>
+                          <button className="be" style={{padding:"3px 6px",fontSize:10}} onClick={()=>setEditAnot({fermId:ferm.id,anotId:an.id})}>✏️</button>
+                          <button className="bd" style={{padding:"3px 6px",fontSize:10}} onClick={()=>updFerm(ferm.id,f=>({...f,anotaciones:(f.anotaciones||[]).filter(x=>x.id!==an.id)}))}>✕</button>
+                        </div>
+                      </div>
+                    ))}
+                    {editAnot&&editAnot.fermId===ferm.id?<FormAnot initialData={(ferm.anotaciones||[]).find(a=>a.id===editAnot.anotId)} onSave={data=>{updFermAnot(ferm.id,editAnot.anotId,data);setEditAnot(null);}} onCancel={()=>setEditAnot(null)}/>:frmAnot===ferm.id?<FormAnot onSave={data=>{updFerm(ferm.id,f=>({...f,anotaciones:[...(f.anotaciones||[]),data]}));setFrmAnot(null);}} onCancel={()=>setFrmAnot(null)}/>:<button className="be" style={{width:"100%",padding:8,marginTop:4}} onClick={()=>setFrmAnot(ferm.id)}>+ Añadir anotación</button>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {frmFerm?<FormFerm vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,fermentaciones:[...(vv.fermentaciones||[]),data]}));setFrmFerm(false);setOpenFerm(data.id);}} onCancel={()=>setFrmFerm(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmFerm(true)}>+ Nueva ficha de fermentación</button>}
+        </div>
+      );
+    }
+
+    // ── SULFUROSO tab ─────────────────────────────────────────────
+    function TabSulf(){
+      const list=v.sulfuroso||[];
+      const total=list.reduce((s,e)=>s+(+e.dosis||0),0);
+      return(
+        <div>
+          <p style={S.DSC}>Adiciones de SO₂ con asignación por vino.</p>
+          {total>0&&<p style={{fontSize:11,color:"var(--gold)",fontWeight:600,marginBottom:12}}>Total acumulado: {total} mg/L</p>}
+          {list.length===0&&!frmSulf&&<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",margin:"16px 0"}}>Sin adiciones.</p>}
+          {list.map(e=>editSulf===e.id?(
+            <FormSulf key={e.id} vinos={v.vinos||[]} initialData={e}
+              onSave={data=>{updEntry("sulfuroso",e.id,data);setEditSulf(null);}}
+              onCancel={()=>setEditSulf(null)}/>
+          ):(
+            <EntradaLog key={e.id} fecha={e.fecha} titulo={"Dosis: "+(e.dosis||"—")+" mg/L"} extra={e.comentario} vinoBadges={getVinoNames(v,e.vinoIds)} onEdit={()=>setEditSulf(e.id)} onDel={()=>delEntry("sulfuroso",e.id)}/>
+          ))}
+          {frmSulf?<FormSulf vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,sulfuroso:[...(vv.sulfuroso||[]),data]}));setFrmSulf(false);}} onCancel={()=>setFrmSulf(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmSulf(true)}>+ Registrar adición de sulfuroso</button>}
+        </div>
+      );
+    }
+
+    // ── ANÁLISIS tab ──────────────────────────────────────────────
+    function TabAnal(){
+      const lista=v.analisis||[];
+      return(
+        <div>
+          <p style={S.DSC}>Análisis de laboratorio con enlace al PDF.</p>
+          {lista.map(an=>{
+            if(editAnal===an.id)return(
+              <FormAnal key={an.id} vinos={v.vinos||[]} initialData={an}
+                onSave={data=>{updEntry("analisis",an.id,data);setEditAnal(null);}}
+                onCancel={()=>setEditAnal(null)}/>
+            );
+            const key=an.id;const isO=openAnalId===key;
+            return(
+              <div key={an.id} style={{marginBottom:isO?0:8}}>
+                <div className={"vc card "+(isO?"op":"")} style={{...S.C,padding:"11px 13px"}} onClick={()=>setOpenAnalId(isO?null:key)}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{flex:1}}>
+                      <VinoBadges vinoIds={an.vinoIds}/>
+                      {an.fecha&&<p style={{fontSize:10,color:"var(--gold)",fontWeight:600,marginBottom:3}}>📅 {showDate(an.fecha)}</p>}
+                      <div style={{display:"flex",flexWrap:"wrap",gap:10}}>
+                        {an.alcohol&&<span style={{fontSize:12,color:"var(--tx)"}}><span style={{color:"var(--tx3)",fontSize:10}}>Alc. </span>{an.alcohol}%</span>}
+                        {an.ph&&<span style={{fontSize:12,color:"var(--tx)"}}><span style={{color:"var(--tx3)",fontSize:10}}>PH </span>{an.ph}</span>}
+                        {an.densidad&&<span style={{fontSize:12,color:"var(--tx)"}}><span style={{color:"var(--tx3)",fontSize:10}}>Dens. </span>{an.densidad}</span>}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                      {an.driveLink&&<button style={{background:"transparent",border:"none",cursor:"pointer",fontSize:22}} onClick={e=>{e.stopPropagation();window.open(an.driveLink,"_blank");}}>📄</button>}
+                      <span style={{fontSize:10,color:"var(--gold)"}}>{isO?"▲":"▼"}</span>
+                    </div>
+                  </div>
+                </div>
+                {isO&&(
+                  <div style={S.DB}>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,marginBottom:10}}>
+                      {CAMPOS_AN.map(([label,key,unit])=>an[key]?<div key={key}><span style={S.LB}>{label}{unit?" ("+unit+")":""}</span><p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--tx)"}}>{an[key]}</p></div>:null)}
+                    </div>
+                    {an.driveLink&&<button className="bg" style={{width:"100%",padding:9,marginBottom:10}} onClick={()=>window.open(an.driveLink,"_blank")}>📄 Abrir PDF en Google Drive</button>}
+                    <button className="be" style={{marginRight:6}} onClick={()=>{setOpenAnalId(null);setEditAnal(an.id);}}>✏️ Editar análisis</button>
+                    <button className="bd" onClick={()=>delEntry("analisis",an.id)}>Eliminar análisis</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {frmAnal?<FormAnal vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,analisis:[...(vv.analisis||[]),data]}));setFrmAnal(false);}} onCancel={()=>setFrmAnal(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmAnal(true)}>+ Añadir análisis</button>}
+        </div>
+      );
+    }
+
+    // ── HITOS tab ─────────────────────────────────────────────────
+    function TabHitos(){
+      // Merged timeline: hitos + campo + sulfuroso + fermentaciones
+      const todos=[
+        ...(v.hitos||[]).map(h=>({...h,_t:"hito"})),
+        ...(v.campo||[]).map(m=>({...m,_t:"campo",descripcion:"Campo — Alc.: "+(m.alcoholProbable||"—")+"% · PH: "+(m.ph||"—")+(m.comentario?" · "+m.comentario:"")})),
+        ...(v.sulfuroso||[]).map(s=>({...s,_t:"sulf",descripcion:"SO₂ — "+(s.dosis||"—")+" mg/L"+(s.comentario?" · "+s.comentario:"")})),
+        ...(v.analisis||[]).map(a=>({...a,_t:"anal",descripcion:"Análisis lab. — Alc.: "+(a.alcohol||"—")+"% · PH: "+(a.ph||"—")})),
+        ...(v.fermentaciones||[]).map(f=>({...f,fecha:f.fechaEncubado,_t:"ferm",descripcion:"Encubado — Densidad: "+(f.densidadEncubado||"—")+", pH: "+(f.phEncubado||"—")})),
+      ].sort((a,b)=>{const da=parseDate(a.fecha),db=parseDate(b.fecha);if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return da-db;});
+      const iconT={hito:"📌",campo:"🔬",sulf:"🧪",anal:"📊",ferm:"🍷"};
+      return(
+        <div>
+          <p style={S.DSC}>Línea de tiempo de todas las intervenciones de la añada.</p>
+          {todos.length===0&&!frmHito&&<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",margin:"16px 0"}}>Sin hitos.</p>}
+          {todos.map((h,i)=>(
+            <div key={h.id||i} style={{display:"flex",gap:10,marginBottom:8}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:"var(--g10)",border:"1px solid var(--g20)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{iconT[h._t]||"📌"}</div>
+                {i<todos.length-1&&<div style={{width:1,flex:1,background:"var(--br2)",margin:"3px 0"}}/>}
+              </div>
+              <div style={{flex:1,paddingBottom:8}}>
+                {getVinoNames(v,h.vinoIds).length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:3}}>{getVinoNames(v,h.vinoIds).map(n=><span key={n} style={{...S.MB,fontSize:8}}>🍷 {n}</span>)}</div>}
+                {h.fecha&&<p style={{fontSize:10,color:"var(--gold)",fontWeight:600,marginBottom:2}}>📅 {showDate(h.fecha)}</p>}
+                <p style={{fontSize:12,color:"var(--tx)",lineHeight:1.5}}>{h.descripcion}</p>
+                {h._t==="hito"&&<div style={{display:"flex",gap:5,marginTop:4}}><button className="be" style={{padding:"2px 7px",fontSize:9}} onClick={()=>{setFrmHito(false);setEditHito(h.id);}}>✏️</button><button className="bd" style={{padding:"2px 7px",fontSize:9}} onClick={()=>delEntry("hitos",h.id)}>✕</button></div>}
+              </div>
+            </div>
+          ))}
+          {editHito?<FormHito vinos={v.vinos||[]} initialData={(v.hitos||[]).find(h=>h.id===editHito)} onSave={data=>{updEntry("hitos",editHito,data);setEditHito(null);}} onCancel={()=>setEditHito(null)}/>:frmHito?<FormHito vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,hitos:[...(vv.hitos||[]),data]}));setFrmHito(false);}} onCancel={()=>setFrmHito(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmHito(true)}>+ Añadir hito</button>}
+        </div>
+      );
+    }
+
+    // ── CATAS tab ─────────────────────────────────────────────────
+    function TabCatas(){
+      const catas=v.catas||[];
+      return(
+        <div>
+          <p style={S.DSC}>Registro de catas por vino. Selecciona el vino y añade la nota de cata.</p>
+          {catas.length===0&&!frmCata&&<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",margin:"16px 0"}}>Sin catas registradas.</p>}
+          {[...catas].sort((a,b)=>{const da=parseDate(a.fecha),db=parseDate(b.fecha);if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return db-da;}).map(c=>{
+            if(editCata===c.id)return(
+              <FormCata key={c.id} vinos={v.vinos||[]} initialData={c}
+                onSave={data=>{updEntry("catas",c.id,data);setEditCata(null);}}
+                onCancel={()=>setEditCata(null)}/>
+            );
+            const vinoName=v.vinos.find(vn=>vn.id===c.vinoId)?.nombre||"Vino desconocido";
+            return(
+              <div key={c.id} style={{...S.C,marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    {c.fecha&&<p style={{fontSize:10,color:"var(--gold)",fontWeight:600,marginBottom:4}}>📅 {showDate(c.fecha)}</p>}
+                    <span style={{...S.TG}}>🍷 {vinoName}</span>
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <button className="be" style={{padding:"3px 8px",fontSize:10}} onClick={()=>setEditCata(c.id)}>✏️</button>
+                    <button className="bd" style={{padding:"3px 8px",fontSize:10}} onClick={()=>updV(vv=>({...vv,catas:vv.catas.filter(x=>x.id!==c.id)}))}>✕</button>
+                  </div>
+                </div>
+                <p style={{fontFamily:"'Crimson Pro',serif",fontSize:16,fontStyle:"italic",color:"var(--tx2)",lineHeight:1.7}}>"{c.notaCata}"</p>
+              </div>
+            );
+          })}
+          {frmCata?<FormCata vinos={v.vinos||[]} onSave={data=>{updV(vv=>({...vv,catas:[...(vv.catas||[]),data]}));setFrmCata(false);}} onCancel={()=>setFrmCata(false)}/>:<button className="bg" style={{width:"100%",padding:10,marginTop:8}} onClick={()=>setFrmCata(true)}>+ Añadir cata</button>}
+        </div>
+      );
+    }
+
+    return(
+      <div className="fade">
+        {/* Breadcrumb */}
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+          <button className="bo" style={{padding:"4px 9px",fontSize:11}} onClick={()=>{setOpenV(null);setFrmGen(false);setFrmViña(false);setFrmCampo(false);setFrmFerm(false);setFrmSulf(false);setFrmAnal(false);setFrmHito(false);setFrmCata(false);}}>◀ Añadas</button>
+          <span style={{fontSize:10,color:"var(--tx3)"}}>›</span>
+          <span style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--gold)"}}>{v.año}</span>
+          <span style={{fontSize:10,color:"var(--tx3)",marginLeft:4}}>{(v.vinos||[]).length} vinos · {(v.catas||[]).length} catas</span>
+        </div>
+        {/* Tab bar */}
+        <div style={{display:"flex",overflowX:"auto",gap:3,marginBottom:16,paddingBottom:10,borderBottom:"1px solid var(--br2)"}}>
+          {A_TABS.map(t=><button key={t.id} className={"vtb "+(vTab===t.id?"a":"")} onClick={()=>setVTab(t.id)}>{t.l}</button>)}
+        </div>
+        {/* Tab content */}
+        {vTab==="general"     &&<TabGeneral/>}
+        {vTab==="vinas"       &&<TabViñas/>}
+        {vTab==="campo"       &&<TabCampo/>}
+        {vTab==="fermentacion"&&<TabFerm/>}
+        {vTab==="sulfuroso"   &&<TabSulf/>}
+        {vTab==="analisis"    &&<TabAnal/>}
+        {vTab==="hitos"       &&<TabHitos/>}
+        {vTab==="catas"       &&<TabCatas/>}
+      </div>
+    );
+  }
+
+  /* ══ FAENAS ═══════════════════════════════════════════════════════ */
+  function Faenas(){
+    const mesAct=MESES[new Date().getMonth()];
+    const porMes=MESES.reduce((acc,m)=>{const fs=fSort.filter(f=>f.mes===m);if(fs.length)acc[m]=fs;return acc;},{});
+    function copiar(){const ant=faenas.filter(f=>f.año===fYear-1);if(!ant.length){alert("No hay faenas del año "+(fYear-1)+" para copiar.");return;}setFaenas(p=>[...p,...ant.map(f=>({...f,id:Date.now()+Math.random(),año:fYear,dia:""}))]);}
+    return(
+      <div className="fade">
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,flexWrap:"wrap"}}>
+          <h2 style={{...S.H2,marginBottom:0}}>Faenas</h2>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:"auto"}}>
+            <button className="bo" style={{padding:"5px 10px"}} onClick={()=>setFYear(y=>y-1)}>◀</button>
+            <span style={{fontFamily:"'Crimson Pro',serif",fontSize:24,color:"var(--gold)",minWidth:48,textAlign:"center"}}>{fYear}</span>
+            <button className="bo" style={{padding:"5px 10px"}} onClick={()=>setFYear(y=>y+1)}>▶</button>
+          </div>
+        </div>
+        {fSort.length===0?(
+          <div style={{...S.C,textAlign:"center",padding:24,marginBottom:16}}>
+            <p style={{fontSize:13,color:"var(--tx2)",marginBottom:14}}>No hay faenas para {fYear}.</p>
+            <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}><button className="bg" onClick={copiar}>Copiar de {fYear-1}</button><button className="bo" onClick={()=>setAddF(true)}>+ Crear primera faena</button></div>
+          </div>
+        ):(
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+            <p style={S.DSC}>Toca un socio para confirmar asistencia</p>
+            <div style={{display:"flex",gap:6}}><button className="bo" style={{fontSize:9}} onClick={copiar}>Copiar de {fYear-1}</button><button className="bg" onClick={()=>setAddF(!addF)}>+ Añadir</button></div>
+          </div>
+        )}
+        {addF&&(
+          <div style={{...S.DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+            <p style={{...S.H3,marginBottom:12}}>Nueva faena · {fYear}</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 52px 1fr",gap:8}}>
+              <SI value={nF.nombre} save={val=>setNF(p=>({...p,nombre:val}))} placeholder="Nombre"/>
+              <SI value={nF.emoji} save={val=>setNF(p=>({...p,emoji:val}))} placeholder="🍇" style={{textAlign:"center"}}/>
+              <select value={nF.mes} onChange={e=>setNF(p=>({...p,mes:e.target.value}))}>{MESES.map(m=><option key={m}>{m}</option>)}</select>
+            </div>
+            <div style={{marginTop:8}}><ST value={nF.desc} save={val=>setNF(p=>({...p,desc:val}))} rows={2} placeholder="Descripción"/></div>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button className="bg" onClick={()=>{if(!nF.nombre)return;setFaenas(p=>[...p,{id:Date.now(),año:fYear,...nF,dia:""}]);setNF({nombre:"",emoji:"",mes:"Enero",desc:""});setAddF(false);}}>Guardar</button>
+              <button className="bo" onClick={()=>setAddF(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        {Object.entries(porMes).map(([mes,flist])=>(
+          <div key={mes} style={{marginBottom:22}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,paddingBottom:7,borderBottom:"1px solid var(--br2)"}}>
+              <span style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",color:mes===mesAct?"var(--gold)":"var(--tx2)"}}>{mes}</span>
+              {mes===mesAct&&<span style={S.MB}>MES ACTUAL</span>}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:9}}>
+              {flist.map(f=>{
+                const conf=socios.filter(sc=>ga(f.id,sc.id)==="si").length;
+                const dias=diasR(f.dia);
+                const dc=dias===null?"var(--tx3)":dias===0?"rgba(255,220,50,.95)":dias<0?"rgba(200,80,80,.7)":dias<=7?"rgba(255,150,50,.9)":dias<=30?"var(--gold)":"var(--tx3)";
+                return(
+                  <div key={f.id} style={{...S.C}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4,flexWrap:"wrap"}}>
+                          <span style={{fontSize:18}}>{f.emoji||"🔧"}</span>
+                          <span style={{fontFamily:"Montserrat",fontSize:13,fontWeight:700,color:"var(--tx)"}}>{f.nombre}</span>
+                          {editFmes===f.id?<select value={f.mes} onChange={e=>sf(f.id,"mes",e.target.value)} style={{width:120,padding:"3px 6px",fontSize:11}}>{MESES.map(m=><option key={m}>{m}</option>)}</select>:<span style={S.MB} className="editable" onClick={()=>setEditFmes(f.id)}>{f.mes}</span>}
+                        </div>
+                        <p style={{fontSize:11,color:"var(--tx2)",lineHeight:1.5,marginBottom:8}}>{f.desc}</p>
+                        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                          <span style={{fontSize:10,fontWeight:600,color:"var(--gold)"}}>📅 Fecha:</span>
+                          <SD value={f.dia||""} save={val=>sf(f.id,"dia",val)}/>
+                          {dias!==null&&f.dia&&<span style={{fontSize:10,fontWeight:700,color:dc}}>{dias===0?"¡HOY!":dias<0?"Hace "+Math.abs(dias)+"d":dias===1?"Mañana":"En "+dias+"d"}</span>}
+                        </div>
+                      </div>
+                      <div style={{textAlign:"center",background:"var(--g10)",border:"1px solid var(--g20)",borderRadius:5,padding:"7px 9px",flexShrink:0,minWidth:46}}>
+                        <p style={{fontFamily:"'Crimson Pro',serif",fontSize:22,color:"var(--gold)",lineHeight:1}}>{conf}</p>
+                        <p style={{fontSize:9,color:"var(--tx3)",fontWeight:600}}>/{socios.length}</p>
+                      </div>
+                    </div>
+                    <SocioBotones fid={f.id} socios={socios} asist={asist} toggle={ta}/>
+                    <div style={{display:"flex",justifyContent:"flex-end",gap:6,marginTop:10}}>
+                      {editFmes===f.id&&<button className="be" onClick={()=>setEditFmes(null)}>✓ Listo</button>}
+                      <button className="bd" onClick={()=>{if(window.confirm("¿Eliminar "+f.nombre+"?"))setFaenas(p=>p.filter(x=>x.id!==f.id));}}>Eliminar</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  /* ══ INVENTARIO ══════════════════════════════════════════════════ */
+  function Inventario(){
+    const total=invCat.reduce((s,c)=>s+c.items.length,0);
+    return(
+      <div className="fade">
+        <h2 style={S.H2}>Inventario</h2>
+        <p style={S.DSC}>Material y herramientas · {total} artículos</p>
+        {invCat.map(cat=>{
+          const isO=openCat===cat.id;
+          return(
+            <div key={cat.id} style={{marginBottom:isO?0:10}}>
+              <div className={"vc card "+(isO?"op":"")} style={{...S.C}} onClick={()=>setOpenCat(isO?null:cat.id)}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:22}}>{cat.emoji}</span><span style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,color:"var(--tx)"}}>{cat.nombre}</span></div>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--gold)"}}>{cat.items.length}</span><span style={{fontSize:10,color:"var(--gold)"}}>{isO?"▲":"▼"}</span></div>
+                </div>
+                {cat.items.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:5,marginTop:10}}>{cat.items.slice(0,4).map(it=><span key={it.id} style={{fontSize:10,background:"var(--g10)",border:"1px solid var(--g20)",color:"var(--tx2)",padding:"2px 8px",borderRadius:4}}>{it.nombre}: <span style={{color:"var(--gold)",fontWeight:600}}>{it.unidades}</span></span>)}{cat.items.length>4&&<span style={{fontSize:10,color:"var(--tx3)"}}>+{cat.items.length-4}</span>}</div>}
+              </div>
+              {isO&&(
+                <div style={S.DB}>
+                  {cat.items.length>0&&(
+                    <div style={{marginBottom:12}}>
+                      {cat.items.map(it=>{
+                        const isE=editItem&&editItem.catId===cat.id&&editItem.itemId===it.id;
+                        return(
+                          <div key={it.id} style={{background:"var(--bg2)",border:"1px solid var(--br2)",borderRadius:5,padding:"9px 11px",display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                            {isE?(<><SI value={it.nombre} save={val=>setInvCat(p=>p.map(c=>c.id===cat.id?{...c,items:c.items.map(i=>i.id===it.id?{...i,nombre:val}:i)}:c))} style={{flex:2}}/><SI value={it.unidades} save={val=>setInvCat(p=>p.map(c=>c.id===cat.id?{...c,items:c.items.map(i=>i.id===it.id?{...i,unidades:val}:i)}:c))} style={{flex:1,textAlign:"center"}} placeholder="Uds."/><button className="be" style={{flexShrink:0}} onClick={()=>setEditItem(null)}>✓</button></>)
+                            :(<><div style={{flex:1}}><span style={{fontSize:12,fontWeight:600,color:"var(--tx)"}}>{it.nombre}</span></div><span style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--gold)",marginRight:4}}>{it.unidades}</span><span style={{fontSize:10,color:"var(--tx3)",marginRight:4}}>uds.</span><button className="be" style={{padding:"3px 8px",fontSize:10}} onClick={()=>setEditItem({catId:cat.id,itemId:it.id})}>✏️</button><button className="bd" style={{padding:"3px 8px",fontSize:10}} onClick={()=>setInvCat(p=>p.map(c=>c.id===cat.id?{...c,items:c.items.filter(i=>i.id!==it.id)}:c))}>✕</button></>)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {addItem===cat.id?(
+                    <div style={{background:"var(--bg2)",border:"1px solid var(--g20)",borderRadius:6,padding:12}}>
+                      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:8,marginBottom:8}}>
+                        <SI value={nItem.nombre} save={val=>setNItem(p=>({...p,nombre:val}))} placeholder="Nombre del material"/>
+                        <SI value={nItem.unidades} save={val=>setNItem(p=>({...p,unidades:val}))} placeholder="Uds."/>
+                      </div>
+                      <div style={{display:"flex",gap:8}}>
+                        <button className="bg" onClick={()=>{if(!nItem.nombre)return;setInvCat(p=>p.map(c=>c.id===cat.id?{...c,items:[...c.items,{id:uid(),...nItem}]}:c));setNItem({nombre:"",unidades:""});setAddItem(null);}}>Guardar</button>
+                        <button className="bo" onClick={()=>{setAddItem(null);setNItem({nombre:"",unidades:""});}}>Cancelar</button>
+                      </div>
+                    </div>
+                  ):<button className="bg" style={{width:"100%",padding:9}} onClick={()=>setAddItem(cat.id)}>+ Añadir artículo</button>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  /* ══ ECONOMÍA ════════════════════════════════════════════════════ */
+  function Economia(){
+    const gastosVis=ecoAño===0?gastos:gastos.filter(g=>String(g.año)===String(ecoAño));
+    const totalVis=gastosVis.reduce((s,g)=>s+(+g.importe||0),0);
+    const totalGeneral=gastos.reduce((s,g)=>s+(+g.importe||0),0);
+    const nSocios=socios.length||6;
+    const gastosAño=gastos.filter(g=>String(g.año)===String(ecoAño));
+    const totalAño=gastosAño.reduce((s,g)=>s+(+g.importe||0),0);
+    const botellas=ecoAño>0?(+botAnual[String(ecoAño)]||0):0;
+    const costeXBot=botellas>0?(totalAño/botellas).toFixed(2):null;
+    const botXSoc=botellas>0?(botellas/nSocios).toFixed(1):null;
+    const costeXSoc=costeXBot&&botXSoc?(+costeXBot*+botXSoc).toFixed(2):null;
+    const porCat=CATS_ECO.map(c=>({...c,total:gastosVis.filter(g=>g.categoria===c.id).reduce((s,g)=>s+(+g.importe||0),0)})).filter(c=>c.total>0);
+    const gastosOrd=[...gastosVis].sort((a,b)=>{const da=parseDate(a.fecha),db=parseDate(b.fecha);if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return db-da;});
+    const chartData=AÑOS_V.map(año=>({año,total:gastos.filter(g=>String(g.año)===String(año)).reduce((s,g)=>s+(+g.importe||0),0)})).filter(d=>d.total>0);
+    const maxChart=Math.max(...chartData.map(d=>d.total),1);
+    return(
+      <div className="fade">
+        <h2 style={S.H2}>Economía</h2>
+        <p style={S.DSC}>Control de gastos · Coste real por botella y por socio</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:22}}>
+          {[["💰",totalGeneral.toFixed(2)+"€","Total"],["📆",gastos.filter(g=>String(g.año)===String(new Date().getFullYear())).reduce((s,g)=>s+(+g.importe||0),0).toFixed(2)+"€","Año actual"],["🍾",String(gastos.length),"Apuntes"]].map(([ic,v,l])=>(
+            <div key={l} style={{...S.C,textAlign:"center",padding:"12px 8px"}}>
+              <p style={{fontSize:20,marginBottom:3}}>{ic}</p>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,color:"var(--gold)",lineHeight:1}}>{v}</p>
+              <p style={{fontSize:9,fontWeight:600,letterSpacing:".07em",textTransform:"uppercase",color:"var(--tx3)",marginTop:3}}>{l}</p>
+            </div>
+          ))}
+        </div>
+        <p style={{...S.H3,marginBottom:8}}>Filtrar por añada</p>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:16}}>
+          {[0,...AÑOS_V].map(a=><button key={a} className={"vtb "+(ecoAño===a?"a":"")} style={{padding:"6px 10px",fontSize:10}} onClick={()=>setEcoAño(a)}>{a===0?"Todos":a}</button>)}
+        </div>
+        {ecoAño===0&&chartData.length>0&&(
+          <div style={{...S.C,marginBottom:16}}>
+            <p style={{...S.H3,marginBottom:14}}>Gasto total por añada</p>
+            <div style={{display:"flex",alignItems:"flex-end",gap:6,height:90,padding:"0 4px"}}>
+              {chartData.map(d=>(
+                <div key={d.año} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <span style={{fontSize:9,color:"var(--gold)",fontWeight:600}}>{d.total.toFixed(0)}€</span>
+                  <div style={{width:"100%",height:(d.total/maxChart*72)+"px",background:"linear-gradient(180deg,var(--gold),rgba(232,168,32,.3))",borderRadius:"3px 3px 0 0",minHeight:4}}/>
+                  <span style={{fontSize:9,color:"var(--tx3)"}}>{d.año}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {ecoAño>0&&(
+          <div style={{...S.C,background:"rgba(232,168,32,.06)",border:"1px solid var(--g20)",marginBottom:16}}>
+            <p style={{...S.H3,marginBottom:14}}>📊 Cálculo de costes · {ecoAño}</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              <div style={S.C}><span style={S.LB}>Total gastos {ecoAño}</span><p style={{fontFamily:"'Crimson Pro',serif",fontSize:28,color:"var(--gold)"}}>{totalAño.toFixed(2)}€</p></div>
+              <div style={S.C}><span style={S.LB}>Botellas llenadas</span><SN value={botAnual[String(ecoAño)]||""} save={val=>setBotAnual(p=>({...p,[String(ecoAño)]:val}))} placeholder="0"/><p style={{fontSize:10,color:"var(--tx3)",marginTop:4}}>Introduce el número para calcular</p></div>
+            </div>
+            {botellas>0&&costeXBot?(
+              <>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+                  <div style={{...S.C,textAlign:"center"}}><span style={S.LB}>Botellas/socio</span><p style={{fontFamily:"'Crimson Pro',serif",fontSize:26,color:"var(--tx)"}}>{botXSoc}</p><p style={{fontSize:9,color:"var(--tx3)",marginTop:2}}>{nSocios} socios</p></div>
+                  <div style={{...S.C,textAlign:"center"}}><span style={S.LB}>Coste/botella</span><p style={{fontFamily:"'Crimson Pro',serif",fontSize:26,color:"var(--gold)"}}>{costeXBot}€</p></div>
+                  <div style={{...S.C,textAlign:"center",border:"1px solid var(--g35)"}}><span style={S.LB}>Coste/socio</span><p style={{fontFamily:"'Crimson Pro',serif",fontSize:26,color:"var(--gold)"}}>{costeXSoc}€</p></div>
+                </div>
+                <div style={{...S.C,background:"rgba(0,0,0,.2)",marginBottom:10}}>
+                  <p style={{...S.H3,marginBottom:10,fontSize:10}}>Desglose por socio</p>
+                  {socios.map(sc=>(
+                    <div key={sc.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid var(--br2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}><Av nombre={sc.nombre} foto={sc.foto} size={26}/><span style={{fontSize:12,color:"var(--tx)"}}>{sc.nombre}{sc.apodo?" "+sc.apodo:""}</span></div>
+                      <div style={{textAlign:"right"}}><span style={{fontFamily:"'Crimson Pro',serif",fontSize:18,color:"var(--gold)"}}>{costeXSoc}€</span><span style={{fontSize:10,color:"var(--tx3)",marginLeft:6}}>({botXSoc} bots.)</span></div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ):<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",padding:"8px 0"}}>Introduce el número de botellas para ver el cálculo.</p>}
+            {porCat.length>0&&<div><p style={{...S.H3,marginBottom:8,fontSize:10}}>Por categoría</p><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{porCat.map(c=><div key={c.id} style={{background:"var(--g10)",border:"1px solid var(--g20)",borderRadius:5,padding:"5px 10px",display:"flex",alignItems:"center",gap:5}}><span style={{fontSize:13}}>{c.emoji}</span><span style={{fontSize:11,color:"var(--tx2)"}}>{c.label}</span><span style={{fontFamily:"'Crimson Pro',serif",fontSize:15,color:"var(--gold)",marginLeft:3}}>{c.total.toFixed(2)}€</span></div>)}</div></div>}
+          </div>
+        )}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,flexWrap:"wrap",gap:8}}>
+          <div><p style={{...S.H3,marginBottom:2}}>{ecoAño>0?"Gastos "+ecoAño:"Todos los gastos"}</p><p style={{fontSize:11,color:"var(--tx2)"}}>{gastosVis.length} apuntes · <span style={{color:"var(--gold)",fontWeight:700}}>{totalVis.toFixed(2)}€</span></p></div>
+          <button className="bg" onClick={()=>setShowGasto(!showGasto)}>+ Añadir gasto</button>
+        </div>
+        {showGasto&&<FormGasto añoDefault={ecoAño>0?ecoAño:""} onSave={data=>{setGastos(p=>[...p,data]);setShowGasto(false);}} onCancel={()=>setShowGasto(false)}/>}
+        {gastosOrd.length===0&&!showGasto&&<p style={{fontSize:12,color:"var(--tx3)",textAlign:"center",margin:"24px 0"}}>Sin gastos{ecoAño>0?" para "+ecoAño:""}.</p>}
+        {gastosOrd.map(g=>{const cat=CATS_ECO.find(c=>c.id===g.categoria)||CATS_ECO[CATS_ECO.length-1];return(
+          <div key={g.id} style={{background:"var(--bg2)",border:"1px solid var(--br2)",borderRadius:5,padding:"10px 12px",marginBottom:6}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:4}}><span style={{fontSize:15}}>{cat.emoji}</span><span style={{fontSize:12,fontWeight:600,color:"var(--tx)"}}>{g.concepto}</span><span style={{...S.TG,fontSize:9}}>{cat.label}</span>{g.año&&<span style={{...S.MB,fontSize:9}}>{g.año}</span>}</div>
+                {g.fecha&&<span style={{fontSize:10,color:"var(--tx3)"}}>📅 {showDate(g.fecha)}</span>}
+                {g.notas&&<span style={{fontSize:10,color:"var(--tx2)",marginLeft:8}}>· {g.notas}</span>}
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}><p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--gold)"}}>{(+g.importe).toFixed(2)}€</p><button className="bd" style={{padding:"2px 7px",fontSize:9,marginTop:4}} onClick={()=>{if(window.confirm("¿Eliminar?"))setGastos(p=>p.filter(x=>x.id!==g.id));}}>✕</button></div>
+            </div>
+          </div>
+        );})}
+        {gastosVis.length>0&&<div style={{...S.C,background:"rgba(232,168,32,.06)",marginTop:4}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontFamily:"Montserrat",fontSize:11,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx2)"}}>Total {ecoAño>0?ecoAño:"general"}</span><span style={{fontFamily:"'Crimson Pro',serif",fontSize:28,color:"var(--gold)"}}>{totalVis.toFixed(2)} €</span></div></div>}
+      </div>
+    );
+  }
+
+  /* ══ SOCIOS ══════════════════════════════════════════════════════ */
+  function Socios(){
+    function handleFoto(sc){
+      const input=document.createElement("input");input.type="file";input.accept="image/*";
+      input.onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const canvas=document.createElement("canvas");const size=180;const ratio=Math.min(size/img.width,size/img.height);canvas.width=Math.round(img.width*ratio);canvas.height=Math.round(img.height*ratio);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);ss(sc.id,"foto",canvas.toDataURL("image/jpeg",0.8));};img.src=ev.target.result;};reader.readAsDataURL(file);};
+      input.click();
+    }
+    if(openSocio!==null){
+      const sc=socios.find(x=>x.id===openSocio);if(!sc)return null;
+      const edad=calcEdad(sc.fechaNacimiento);
+      return(
+        <div className="fade">
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button className="bo" style={{padding:"5px 10px",fontSize:12}} onClick={()=>setOpenSocio(null)}>◀</button><h2 style={{...S.H2,marginBottom:0}}>Ficha de socio</h2></div>
+          <div style={{...S.C,marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:16}}>
+              <div style={{position:"relative",flexShrink:0}}><Av nombre={sc.nombre} foto={sc.foto} size={80}/><button className="be" style={{position:"absolute",bottom:-4,right:-4,padding:"3px 6px",fontSize:10}} onClick={()=>handleFoto(sc)}>📷</button></div>
+              <div style={{flex:1}}>
+                <p style={{fontFamily:"'Crimson Pro',serif",fontSize:26,color:"var(--gold)"}}>{sc.nombre}{sc.apodo?" "+sc.apodo:""}</p>
+                <p style={{fontSize:11,color:"var(--tx2)",textTransform:"uppercase",letterSpacing:".08em"}}>{sc.rol}</p>
+                {edad!==null&&<p style={{fontSize:12,color:"var(--tx3)",marginTop:3}}>{edad} años</p>}
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div><span style={S.LB}>Nombre</span><SI value={sc.nombre} save={val=>ss(sc.id,"nombre",val)} placeholder="Nombre"/></div>
+              <div><span style={S.LB}>Apodo</span><SI value={sc.apodo||""} save={val=>ss(sc.id,"apodo",val)} placeholder="(Padre)…"/></div>
+              <div style={{gridColumn:"1/-1"}}><span style={S.LB}>Nombre completo</span><SI value={sc.nombreCompleto||""} save={val=>ss(sc.id,"nombreCompleto",val)} placeholder="Nombre y apellidos…"/></div>
+              <div><span style={S.LB}>Fecha de nacimiento</span><SD value={sc.fechaNacimiento||""} save={val=>ss(sc.id,"fechaNacimiento",val)}/></div>
+              <div><span style={S.LB}>Pseudónimo</span><SI value={sc.pseudonimo||""} save={val=>ss(sc.id,"pseudonimo",val)} placeholder="El bodeguero…"/></div>
+              <div style={{gridColumn:"1/-1"}}><span style={S.LB}>Valor que aporta a la bodega</span><ST value={sc.valorAporta||""} save={val=>ss(sc.id,"valorAporta",val)} rows={3} placeholder="Conocimientos, trabajo, equipamiento…"/></div>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8}}><button className="bo" style={{width:"100%"}} onClick={()=>setOpenSocio(null)}>← Volver</button><button className="bd" onClick={()=>{if(window.confirm("¿Eliminar a "+sc.nombre+"?")){setSocios(p=>p.filter(x=>x.id!==sc.id));setOpenSocio(null);}}}>Eliminar</button></div>
+        </div>
+      );
+    }
+    return(
+      <div className="fade">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
+          <div><h2 style={S.H2}>Socios</h2><p style={S.DSC}>Toca una ficha para ver y editar</p></div>
+          <button className="bg" onClick={()=>setAddS(!addS)}>+ Añadir</button>
+        </div>
+        {addS&&(
+          <div style={{...S.DB,borderRadius:7,borderTop:"1px solid var(--br)",marginBottom:12,padding:14}}>
+            <p style={{...S.H3,marginBottom:12}}>Nuevo socio</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              <SI value={nS.nombre} save={val=>setNS(p=>({...p,nombre:val}))} placeholder="Nombre"/>
+              <SI value={nS.apodo} save={val=>setNS(p=>({...p,apodo:val}))} placeholder="(Padre)…"/>
+            </div>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button className="bg" onClick={()=>{if(!nS.nombre)return;setSocios(p=>[...p,{id:uid(),...nS,nombreCompleto:"",fechaNacimiento:"",pseudonimo:"",valorAporta:"",foto:""}]);setNS({nombre:"",apodo:"",rol:"Socio"});setAddS(false);}}>Guardar</button>
+              <button className="bo" onClick={()=>setAddS(false)}>Cancelar</button>
+            </div>
+          </div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
+          {socios.map(sc=>{
+            const conf=faenas.filter(f=>ga(f.id,sc.id)==="si").length;
+            const pct=faenas.length>0?Math.round((conf/faenas.length)*100):0;
+            const edad=calcEdad(sc.fechaNacimiento);
+            return(
+              <div key={sc.id} className="card" style={{...S.C,textAlign:"center",padding:"18px 12px",cursor:"pointer"}} onClick={()=>setOpenSocio(sc.id)}>
+                <div style={{position:"relative",display:"inline-block",marginBottom:10}}>
+                  <Av nombre={sc.nombre} foto={sc.foto} size={60}/>
+                  <button className="be" style={{position:"absolute",bottom:-2,right:-2,padding:"2px 5px",fontSize:10}} onClick={e=>{e.stopPropagation();handleFoto(sc);}}>📷</button>
+                </div>
+                <p style={{fontFamily:"Montserrat",fontSize:14,fontWeight:700,color:"var(--tx)",marginBottom:1}}>{sc.nombre}</p>
+                {sc.apodo&&<p style={{fontSize:11,color:"var(--tx2)",marginBottom:1}}>{sc.apodo}</p>}
+                <p style={{fontSize:10,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--gold)",marginBottom:2}}>{sc.rol}</p>
+                {edad!==null&&<p style={{fontSize:10,color:"var(--tx3)",marginBottom:6}}>{edad} años</p>}
+                {sc.pseudonimo&&<p style={{fontSize:10,color:"var(--tx3)",fontStyle:"italic",marginBottom:10}}>"{sc.pseudonimo}"</p>}
+                <div style={{display:"flex",justifyContent:"space-around",borderTop:"1px solid var(--br2)",paddingTop:10}}>
+                  <div><p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--gold)"}}>{conf}</p><p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)"}}>Faenas</p></div>
+                  <div><p style={{fontFamily:"'Crimson Pro',serif",fontSize:20,color:"var(--gold)"}}>{pct}%</p><p style={{fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:"var(--tx3)"}}>Part.</p></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  /* ══ IDIOSINCRASIA ═══════════════════════════════════════════════ */
+  function Idiosincrasia(){
+    return(
+      <div className="fade">
+        <div style={{textAlign:"center",padding:"28px 0 20px",borderBottom:"1px solid var(--br2)",marginBottom:28}}>
+          <OriLogo size={52}/>
+          <h1 style={{fontFamily:"Montserrat",fontSize:22,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",marginTop:14}}>QUIÉNES SOMOS</h1>
+          <p style={{fontFamily:"Montserrat",fontSize:10,letterSpacing:".16em",textTransform:"uppercase",color:"var(--tx3)",marginTop:6}}>Familia Oriol · Bodega Quebracántaros · Valdejalón</p>
+        </div>
+        <div style={{maxWidth:640,margin:"0 auto"}}>
+          {[
+            {emoji:"🍷",titulo:"Nuestro origen",texto:"Somos la familia Oriol al completo: padres, hijos y, con el paso del tiempo, consortes y nietos a quienes hemos tenido el placer de contagiar nuestro amor por el vino. Siempre hemos compartido este líquido elemento alrededor de una mesa, charlando, discutiendo sus matices, soñando con elaborarlo nosotros mismos."},
+            {emoji:"🏚️",titulo:"El nacimiento de la bodega",texto:"En 2020 nació Bodega Orioles con una intención clara y apasionada: crear el mejor vino que seamos capaces de bebernos. Sin más pretensión que la del disfrute y el aprendizaje. Con nuestros propios medios, unas veces más rudimentarios y otras con cierta tecnología, hemos ido avanzando juntos hacia ese objetivo común."},
+            {emoji:"🌱",titulo:"Aprendizaje y progreso",texto:"Nada es sencillo cuando se empieza de cero. Pero la familia que somos, unida, no encuentra límite que no pueda superar con tiempo, dedicación y muchas ganas. Cada vendimia nos enseña algo nuevo. Cada vino que sale de nuestra bodega lleva consigo el esfuerzo colectivo de todos y cada uno de nosotros."},
+            {emoji:"❤️",titulo:"Más que vino",texto:"Esta actividad sin ánimo de lucro no ha hecho otra cosa que fortalecer nuestros lazos familiares. Nos permite reunirnos muchas más veces al año y compartir una relación que, por circunstancias geográficas, resultaba más complicada antes. Quebracántaros no es solo el nombre de nuestro vino: es el nombre de lo que hacemos cuando estamos juntos."},
+          ].map(({emoji,titulo,texto})=>(
+            <div key={titulo} style={{marginBottom:24}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><span style={{fontSize:22}}>{emoji}</span><h3 style={{fontFamily:"Montserrat",fontSize:13,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",color:"var(--gold)"}}>{titulo}</h3></div>
+              <p style={{fontFamily:"'Crimson Pro',serif",fontSize:17,color:"var(--tx2)",lineHeight:1.8,paddingLeft:32}}>{texto}</p>
+            </div>
+          ))}
+          <div style={{...S.C,background:"rgba(232,168,32,.05)",textAlign:"center",padding:"24px 20px",marginTop:8}}>
+            <OriLogo size={36}/>
+            <p style={{fontFamily:"'Crimson Pro',serif",fontSize:18,fontStyle:"italic",color:"var(--gold)",marginTop:12,lineHeight:1.7}}>"Juntos, como familia que somos,<br/>nada nos impide seguir<br/>fortaleciendo nuestros saberes<br/>y nuestra unión."</p>
+            <p style={{fontFamily:"Montserrat",fontSize:9,letterSpacing:".14em",textTransform:"uppercase",color:"var(--tx3)",marginTop:10}}>Familia Oriol · Desde 2020</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ══ CONFIG ══════════════════════════════════════════════════════ */
+  function Config(){
+    return(
+      <div className="fade">
+        <h2 style={S.H2}>Configuración</h2>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={S.C}><span style={S.LB}>Nombre de la bodega</span><SI value={bodega} save={setBodega} placeholder="Bodega Orioles"/></div>
+          <div style={S.C}><span style={S.LB}>Lema / Subtítulo</span><SI value={lema} save={setLema} placeholder="Quebracántaros · Valdejalón"/></div>
+          <div style={S.C}>
+            <p style={{...S.H3,marginBottom:6}}>🔐 PIN de edición</p>
+            <p style={{fontSize:12,color:"var(--tx2)",lineHeight:1.7,marginBottom:10}}>Solo las personas que conozcan este PIN podrán editar la app.</p>
+            <input className="lock-btn" type="password" defaultValue={pin} placeholder="PIN actual" onBlur={e=>{if(e.target.value)setPin(e.target.value);}} style={{marginBottom:6,pointerEvents:"auto",opacity:1,borderColor:"var(--br)"}}/>
+            {editMode?<p style={{fontSize:11,color:"var(--gold)"}}>🔓 En modo edición · PIN: {pin}</p>:<p style={{fontSize:11,color:"var(--tx3)"}}>🔒 Bloqueado · Pulsa el candado del header para editar</p>}
+          </div>
+          <div style={S.C}>
+            <p style={{...S.H3,marginBottom:6}}>📲 Instalar app</p>
+            <button className="bg" style={{width:"100%",padding:11}} onClick={()=>window.triggerInstall&&window.triggerInstall()}>📲 Instalar en este móvil</button>
+            <p style={{fontSize:11,color:"var(--tx3)",marginTop:8,lineHeight:1.6}}>Si no funciona: Chrome → Menú ⋮ → "Añadir a pantalla de inicio"</p>
+          </div>
+          <div style={S.C}>
+            <p style={{...S.H3,marginBottom:6}}>⬇ Copia de seguridad</p>
+            <button className="bg" style={{width:"100%",padding:10}} onClick={()=>{const data={socios,vendimias:vends,faenas,asistencia:asist,inventario:invCat,gastos,bodega,lema};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="orioles-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();}}>⬇ Descargar backup JSON</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Render ──────────────────────────────────────────────────── */
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <header style={{background:"#0D0D0D",borderBottom:"1px solid rgba(232,168,32,.14)",padding:"11px 16px",position:"sticky",top:0,zIndex:50}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,maxWidth:820,margin:"0 auto"}}>
+          <OriLogo size={30}/>
+          <div>
+            <h1 style={{fontFamily:"Montserrat",fontSize:16,fontWeight:700,letterSpacing:".22em",textTransform:"uppercase",color:"var(--gold)",lineHeight:1}}>ORIOLES</h1>
+            <p style={{fontSize:9,fontWeight:500,letterSpacing:".14em",textTransform:"uppercase",color:"var(--tx2)",marginTop:2}}>{lema}</p>
+          </div>
+          <button className="lock-btn" onClick={handleLock} title={editMode?"Bloquear edición":"Desbloquear para editar"}
+            style={{marginLeft:"auto",background:editMode?"var(--g10)":"transparent",border:"1px solid "+(editMode?"var(--g35)":"var(--br2)"),borderRadius:6,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
+            <span style={{fontSize:16}}>{editMode?"🔓":"🔒"}</span>
+            <span style={{fontFamily:"Montserrat",fontSize:9,fontWeight:600,letterSpacing:".08em",textTransform:"uppercase",color:editMode?"var(--gold)":"var(--tx3)"}}>{editMode?"Editando":"Ver"}</span>
+          </button>
+        </div>
+      </header>
+      <nav style={{display:"flex",overflowX:"auto",gap:2,padding:"5px 10px",borderBottom:"1px solid var(--br2)",background:"#111",position:"sticky",top:53,zIndex:49}}>
+        {TABS.map(t=><button key={t.id} className={"tb "+(tab===t.id?"a":"")} onClick={()=>setTab(t.id)}>{t.l}</button>)}
+      </nav>
+      <main style={{padding:"20px 14px 64px",maxWidth:820,margin:"0 auto"}}>
+        {tab==="inicio"        &&<Inicio/>}
+        {tab==="vendimias"     &&<Vendimias/>}
+        {tab==="faenas"        &&<Faenas/>}
+        {tab==="inventario"    &&<Inventario/>}
+        {tab==="economia"      &&<Economia/>}
+        {tab==="socios"        &&<Socios/>}
+        {tab==="idiosincrasia" &&<Idiosincrasia/>}
+        {tab==="config"        &&<Config/>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+if("serviceWorker"in navigator&&location.protocol==="https:"){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").then(reg=>{
+      reg.addEventListener("updatefound",()=>{const sw=reg.installing;sw.addEventListener("statechange",()=>{if(sw.state==="installed"&&navigator.serviceWorker.controller)sw.postMessage("SKIP_WAITING");});});
+    }).catch(e=>console.warn("SW:",e));
+    navigator.serviceWorker.addEventListener("controllerchange",()=>window.location.reload());
+  });
+}
+let dp=null;const bn=document.getElementById("ib");
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;bn.style.display="flex";});
+function triggerInstall(){if(dp){dp.prompt();dp.userChoice.then(()=>{dp=null;bn.style.display="none";});}else{alert("Android: Chrome → Menú ⋮ → Añadir a pantalla de inicio\niPhone: Safari → Compartir → Añadir a pantalla de inicio");}}
+window.triggerInstall=triggerInstall;
+document.getElementById("ibb").addEventListener("click",triggerInstall);
+document.getElementById("ibc").addEventListener("click",()=>{bn.style.display="none";});
+window.addEventListener("appinstalled",()=>{bn.style.display="none";});
+</script>
+</body>
+</html>
