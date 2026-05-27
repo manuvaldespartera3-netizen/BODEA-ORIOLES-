@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Bodega Orioles</title>
+<link rel="manifest" href="./manifest.json"/>
+<meta name="theme-color" content="#0D0D0D"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Orioles"/>
+<link rel="apple-touch-icon" href="./icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0D0D0D;--bg2:#111;--sur:#1A1A1A;--gold:#E8A820;--g10:rgba(232,168,32,.10);--g20:rgba(232,168,32,.20);--g35:rgba(232,168,32,.35);--g50:rgba(232,168,32,.50);--tx:#F0EAD6;--tx2:rgba(240,234,214,.55);--tx3:rgba(240,234,214,.28);--br:rgba(232,168,32,.18);--br2:rgba(255,255,255,.06);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:Montserrat,sans-serif}
+#root{min-height:100vh}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fade{animation:fadeUp .25s ease forwards}
+.tb{background:transparent;border:1px solid transparent;border-radius:5px;padding:7px 11px;color:var(--tx2);cursor:pointer;font-family:Montserrat,sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:all .2s}
+.tb.a{background:var(--g10);border-color:var(--g35);color:var(--gold)}
+.vtb{background:transparent;border:1px solid transparent;border-radius:4px;padding:5px 9px;color:var(--tx2);cursor:pointer;font-family:Montserrat,sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;transition:all .2s}
+.vtb.a{background:var(--g10);border-color:var(--g35);color:var(--gold)}
+.bg{background:var(--gold);color:#0D0D0D;border:none;border-radius:5px;padding:8px 16px;font-family:Montserrat,sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.bo{background:transparent;color:var(--tx2);border:1px solid var(--br2);border-radius:5px;padding:7px 13px;font-family:Montserrat,sans-serif;font-size:10px;cursor:pointer}
+.be{background:var(--g10);color:var(--gold);border:1px solid var(--g20);border-radius:5px;padding:5px 10px;font-family:Montserrat,sans-serif;font-size:10px;font-weight:600;cursor:pointer}
+.bd{background:rgba(180,40,40,.12);color:rgba(220,80,80,.8);border:1px solid rgba(180,40,40,.25);border-radius:5px;padding:5px 10px;font-family:Montserrat,sans-serif;font-size:10px;cursor:pointer}
+input,textarea,select{background:var(--sur);border:1px solid rgba(232,168,32,.2);border-radius:5px;padding:8px 11px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:12px;outline:none;width:100%;transition:border-color .2s}
+input[type=date]{color-scheme:dark}
+input::placeholder,textarea::placeholder{color:var(--tx3)}
+input:focus,textarea:focus{border-color:var(--g50)}
+textarea{resize:vertical;line-height:1.6}
+body.locked .bg,body.locked .bd,body.locked .be{display:none!important}
+body.locked input:not(.lbtn),body.locked select,body.locked textarea{pointer-events:none;opacity:.5}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+(function() {
+'use strict';
+var h = React.createElement;
+var useState = React.useState;
+var useEffect = React.useEffect;
+var useContext = React.useContext;
+var createContext = React.createContext;
+
+// ─── Context ────────────────────────────────────────────────────────
+var Ctx = createContext({});
+function useApp() { return useContext(Ctx); }
+
+// ─── Constantes ──────────────────────────────────────────────────────
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var MORD = {}; MESES.forEach(function(m,i){ MORD[m]=i; });
+var VARIEDADES = ['Garnacha','Tempranillo','Macabeo','Garnacha Blanca'];
+var ANOS = [2020,2021,2022,2023,2024,2025,2026];
+var NEXT = {'':'si', si:'no', no:'quizas', quizas:''};
+var AICON = {'':'❓', si:'✅', no:'❌', quizas:'🤔'};
+var ALBL = {'':'Sin confirmar', si:'Sí asisto', no:'No asisto', quizas:'Quizás'};
+var ABRD = {'':'rgba(255,255,255,.1)', si:'#2d7a3e', no:'#8b1a1a', quizas:'#8b6a00'};
+var A_TABS = [
+  {id:'general',l:'General'},{id:'vinas',l:'Viñas'},{id:'campo',l:'Campo'},
+  {id:'fermentacion',l:'Fermentación'},{id:'sulfuroso',l:'Sulfuroso'},
+  {id:'analisis',l:'Análisis'},{id:'hitos',l:'Hitos'},{id:'catas',l:'Catas'}
+];
+var CATS_ECO = [
+  {id:'quimicos',label:'Químicos',emoji:'🧪'},{id:'limpieza',label:'Limpieza',emoji:'🧹'},
+  {id:'uva',label:'Uva',emoji:'🍇'},{id:'botella',label:'Botella',emoji:'🍾'},
+  {id:'corcho',label:'Corcho',emoji:'🪵'},{id:'etiqueta',label:'Etiqueta',emoji:'🏷️'},
+  {id:'analisis_lab',label:'Análisis lab.',emoji:'🔬'},{id:'general',label:'General',emoji:'📦'}
+];
+
+// ─── Estilos ─────────────────────────────────────────────────────────
+var S = {
+  H2:{fontFamily:'Montserrat',fontSize:18,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:'var(--tx)',marginBottom:4},
+  H3:{fontFamily:'Montserrat',fontSize:11,fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--gold)',marginBottom:10},
+  DSC:{fontSize:12,color:'var(--tx2)',lineHeight:1.7,marginBottom:16},
+  C:{background:'var(--sur)',border:'1px solid var(--br)',borderRadius:7,padding:14},
+  DB:{background:'#111',border:'1px solid var(--br)',borderTop:'none',borderRadius:'0 0 7px 7px',padding:14},
+  LB:{fontSize:10,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--gold)',marginBottom:4,display:'block'},
+  TG:{fontSize:10,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',background:'var(--g10)',border:'1px solid var(--g20)',color:'var(--gold)',padding:'3px 8px',borderRadius:4},
+  MB:{fontSize:9,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',background:'var(--g10)',border:'1px solid var(--g20)',color:'var(--gold)',padding:'3px 7px',borderRadius:4},
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+function load(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function uid(){return String(Date.now()+Math.random());}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function showDate(s){if(!s)return '';if(s.indexOf('-')>=0){var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}return s;}
+function parseDate(s){if(!s)return null;if(s.indexOf('-')>=0)return new Date(s+'T00:00:00');var p=s.split('/');if(p.length!==3)return null;var d=+p[0],m=+p[1],y=+p[2];if(!d||!m||!y)return null;return new Date(y,m-1,d);}
+function diasR(s){var d=parseDate(s);if(!d)return null;var h2=new Date();h2.setHours(0,0,0,0);return Math.round((d-h2)/864e5);}
+function calcEdad(fn){if(!fn)return null;var d=parseDate(fn);if(!d)return null;var h2=new Date();var e=h2.getFullYear()-d.getFullYear();if(h2.getMonth()-d.getMonth()<0||(h2.getMonth()-d.getMonth()===0&&h2.getDate()<d.getDate()))e--;return e;}
+function makeVino(nombre){return{id:uid(),nombre:nombre||'Vino sin nombre',fechaVendimia:'',litros:0,variedades:[],notas:''};}
+function makeVend(ano){return{ano:ano,vinos:[],vinas:[],campo:[],fermentaciones:[],sulfuroso:[],analisis:[],hitos:[],catas:[]};}
+function vendLitros(v){return (v.vinos||[]).reduce(function(s,vn){return s+(+vn.litros||0);},0);}
+function vendKg(v){return (v.vinas||[]).reduce(function(s,e){return s+(e.variedades||[]).reduce(function(t,va){return t+(+va.kg||0);},0);},0);}
+function migrateVends(saved){
+  if(!saved)return ANOS.map(makeVend);
+  var byAno={};
+  saved.forEach(function(v){byAno[v.ano||v['\u00e1\u00f1o']||v.year]=v;});
+  return ANOS.map(function(ano){
+    var old=byAno[ano];
+    if(!old)return makeVend(ano);
+    return {
+      ano:ano,
+      vinos:(old.vinos||[]).map(function(vn){return {id:vn.id||uid(),nombre:vn.nombre||'Vino '+ano,fechaVendimia:vn.fechaVendimia||'',litros:vn.litros||0,variedades:vn.variedades||[],notas:vn.notas||''};} ),
+      vinas:old.vinas||old['\u00f1as']||old['vi\u00f1as']||[],
+      campo:old.campo||[],
+      fermentaciones:old.fermentaciones||[],
+      sulfuroso:old.sulfuroso||[],
+      analisis:old.analisis||[],
+      hitos:old.hitos||[],
+      catas:old.catas||[]
+    };
+  });
+}
+
+// ─── Datos iniciales ──────────────────────────────────────────────────
+var SOCIOS0 = [
+  {id:1,nombre:'Manuel',apodo:'(Padre)',rol:'Socio'},
+  {id:2,nombre:'Manuel',apodo:'(Hijo)',rol:'Socio'},
+  {id:3,nombre:'Gabriel',apodo:'',rol:'Socio'},
+  {id:4,nombre:'Antonio',apodo:'',rol:'Socio'},
+  {id:5,nombre:'Héctor',apodo:'',rol:'Socio'},
+  {id:6,nombre:'Cristina',apodo:'',rol:'Socia'}
+].map(function(s){return Object.assign({nombreCompleto:'',fechaNacimiento:'',pseudonimo:'',valorAporta:'',foto:''},s);});
+
+var FAENAS0 = [
+  {id:10,ano:2026,nombre:'Poda',emoji:'✂️',mes:'Enero',dia:'',desc:'Poda de invierno.'},
+  {id:20,ano:2026,nombre:'Atado',emoji:'🪢',mes:'Febrero',dia:'',desc:'Atado de sarmientos.'},
+  {id:30,ano:2026,nombre:'Embotellado',emoji:'🍾',mes:'Marzo',dia:'',desc:'Filtrado, llenado y etiquetado.'},
+  {id:40,ano:2026,nombre:'Limpieza',emoji:'🧹',mes:'Marzo',dia:'',desc:'Limpieza de bodega.'},
+  {id:50,ano:2026,nombre:'Tratamiento',emoji:'💧',mes:'Mayo',dia:'',desc:'Tratamiento fitosanitario.'},
+  {id:60,ano:2026,nombre:'Desbrotado',emoji:'🌿',mes:'Mayo',dia:'',desc:'Eliminación de brotes.'},
+  {id:70,ano:2026,nombre:'Deshojado',emoji:'🍃',mes:'Julio',dia:'',desc:'Hojas alrededor del racimo.'},
+  {id:80,ano:2026,nombre:'Aclareo',emoji:'🍇',mes:'Agosto',dia:'',desc:'Eliminación de racimos.'},
+  {id:90,ano:2026,nombre:'Vendimia',emoji:'🍇',mes:'Octubre',dia:'',desc:'Recogida de la uva.'},
+  {id:100,ano:2026,nombre:'Prensado',emoji:'🔩',mes:'Octubre',dia:'',desc:'Despalillado y depósitos.'},
+  {id:110,ano:2026,nombre:'Fermentación',emoji:'🍷',mes:'Noviembre',dia:'',desc:'Control y primer trasiego.'}
+];
+
+var INVC0 = [
+  {id:'embotellado',nombre:'Embotellado',emoji:'🍾',items:[]},
+  {id:'fermentacion',nombre:'Fermentación',emoji:'🫧',items:[]},
+  {id:'limpieza',nombre:'Limpieza',emoji:'🧹',items:[]},
+  {id:'general',nombre:'General',emoji:'🏚️',items:[]}
+];
+
+// ─── Logo SVG ─────────────────────────────────────────────────────────
+function OriLogo(props) {
+  var size = props.size||48;
+  var g = '#E8A820';
+  return h('svg',{width:size,height:Math.round(size*1.83),viewBox:'0 0 60 110',fill:'none'},
+    h('polygon',{points:'30,0 34,4 30,8 26,4',fill:g}),
+    h('polygon',{points:'13,10 47,10 30,28',fill:g}),
+    h('polygon',{points:'8,31 12,35 8,39 4,35',fill:g}),
+    h('polygon',{points:'52,31 56,35 52,39 48,35',fill:g}),
+    h('polygon',{points:'3,41 23,41 13,56',fill:g}),
+    h('polygon',{points:'37,41 57,41 47,56',fill:g}),
+    h('polygon',{points:'8,58 12,62 8,66 4,62',fill:g}),
+    h('polygon',{points:'52,58 56,62 52,66 48,62',fill:g}),
+    h('polygon',{points:'3,68 23,68 13,82',fill:g}),
+    h('polygon',{points:'37,68 57,68 47,82',fill:g}),
+    h('polygon',{points:'4,94 22,94 13,106',fill:g}),
+    h('polygon',{points:'38,94 56,94 47,106',fill:g})
+  );
+}
+
+// ─── UI Atoms ─────────────────────────────────────────────────────────
+function Av(props) {
+  var nombre=props.nombre, foto=props.foto, size=props.size||44;
+  if(foto) return h('img',{src:foto,style:{width:size,height:size,borderRadius:'50%',objectFit:'cover',flexShrink:0,border:'1.5px solid var(--g35)'}});
+  return h('div',{style:{width:size,height:size,borderRadius:'50%',background:'#111',border:'1.5px solid var(--g35)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Montserrat',fontSize:Math.round(size*.4),fontWeight:700,color:'var(--gold)',flexShrink:0}},
+    (nombre||'?').charAt(0).toUpperCase()
+  );
+}
+
+function SocioBotones(props) {
+  var fid = props.fid;
+  var ctx = useApp();
+  return h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
+    ctx.socios.map(function(sc) {
+      var st = ctx.asist[fid+'_'+sc.id]||'';
+      return h('button',{
+        key:sc.id, className:'sdot',
+        style:{background:'var(--bg2)',border:'1.5px solid '+ABRD[st],borderRadius:5,padding:'5px 9px',display:'flex',alignItems:'center',gap:5,cursor:'pointer'},
+        onClick:function(){ctx.ta(fid,sc.id);}
+      },
+        h('span',{style:{fontFamily:'Montserrat',fontSize:11,fontWeight:500,color:'var(--tx2)'}},sc.nombre),
+        sc.apodo?h('span',{style:{fontSize:9,color:'var(--tx3)'}},sc.apodo):null,
+        h('span',{style:{fontSize:13}},AICON[st])
+      );
+    })
+  );
+}
+
+// ─── Input helpers (stable components) ────────────────────────────────
+function SI(props) {
+  var val = props.value!=null?String(props.value):'';
+  var state = useState(val);
+  var v = state[0], setV = state[1];
+  useEffect(function(){setV(props.value!=null?String(props.value):'');},[props.value]);
+  return h('input',Object.assign({},props.style?{style:props.style}:{},{
+    type:props.type||'text', value:v, placeholder:props.placeholder||'',
+    onChange:function(e){setV(e.target.value);},
+    onBlur:function(e){props.save(e.target.value);}
+  }));
+}
+function SN(props) {
+  var state = useState(props.value||'');
+  var v = state[0], setV = state[1];
+  useEffect(function(){setV(props.value||'');},[props.value]);
+  return h('input',{type:'number',value:v,placeholder:props.placeholder||'0',
+    style:props.style,
+    onChange:function(e){setV(e.target.value);},
+    onBlur:function(e){props.save(+e.target.value);}
+  });
+}
+function ST(props) {
+  var state = useState(props.value||'');
+  var v = state[0], setV = state[1];
+  useEffect(function(){setV(props.value||'');},[props.value]);
+  return h('textarea',{rows:props.rows||3,value:v,placeholder:props.placeholder||'',
+    onChange:function(e){setV(e.target.value);},
+    onBlur:function(e){props.save(e.target.value);}
+  });
+}
+function SD(props) {
+  function toISO(s){if(!s)return '';if(s.indexOf('-')>=0)return s;var p=s.split('/');if(p.length!==3)return '';return p[2].padStart(4,'0')+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
+  var state = useState(toISO(props.value)||'');
+  var v = state[0], setV = state[1];
+  useEffect(function(){setV(toISO(props.value)||'');},[props.value]);
+  return h('input',{type:'date',value:v,
+    onChange:function(e){setV(e.target.value);props.save(e.target.value);}
+  });
+}
+
+// ─── VinosPicker / VinoSingle ─────────────────────────────────────────
+function VinosPicker(props) {
+  var vinos=props.vinos||[], selected=props.selected||[], onChange=props.onChange, label=props.label||'Asignar a vinos';
+  if(!vinos.length) return h('p',{style:{fontSize:11,color:'var(--tx3)',padding:'6px 0'}},'Crea vinos en General.');
+  return h('div',null,
+    h('span',{style:S.LB},label),
+    h('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}},
+      vinos.map(function(vn){
+        var sel=selected.indexOf(vn.id)>=0;
+        return h('button',{key:vn.id,
+          style:{background:sel?'var(--g20)':'transparent',border:'1px solid '+(sel?'var(--g50)':'var(--br2)'),borderRadius:5,padding:'5px 10px',cursor:'pointer',fontFamily:'Montserrat',fontSize:11,fontWeight:600,color:sel?'var(--gold)':'var(--tx2)'},
+          onClick:function(){onChange(sel?selected.filter(function(x){return x!==vn.id;}):[].concat(selected,[vn.id]));}
+        },vn.nombre);
+      })
+    )
+  );
+}
+function VinoSingle(props) {
+  var vinos=props.vinos||[], selected=props.selected, onChange=props.onChange;
+  if(!vinos.length) return h('p',{style:{fontSize:11,color:'var(--tx3)'}},'Crea vinos en General.');
+  return h('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}},
+    vinos.map(function(vn){
+      var sel=selected===vn.id;
+      return h('button',{key:vn.id,
+        style:{background:sel?'var(--g20)':'transparent',border:'1px solid '+(sel?'var(--g50)':'var(--br2)'),borderRadius:5,padding:'5px 10px',cursor:'pointer',fontFamily:'Montserrat',fontSize:11,fontWeight:600,color:sel?'var(--gold)':'var(--tx2)'},
+        onClick:function(){onChange(sel?'':vn.id);}
+      },vn.nombre);
+    })
+  );
+}
+
+// ─── EntradaLog ───────────────────────────────────────────────────────
+function EntradaLog(props) {
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--br2)',borderRadius:5,padding:'9px 11px',display:'flex',alignItems:'flex-start',gap:8,marginBottom:6}},
+    h('div',{style:{flex:1}},
+      props.vinoBadges&&props.vinoBadges.length?h('div',{style:{display:'flex',flexWrap:'wrap',gap:4,marginBottom:4}},
+        props.vinoBadges.map(function(n){return h('span',{key:n,style:Object.assign({},S.MB,{fontSize:8})},'🍷 '+n);})):null,
+      props.fecha?h('p',{style:{fontSize:10,color:'var(--gold)',fontWeight:600,marginBottom:2}},'📅 '+showDate(props.fecha)):null,
+      h('p',{style:{fontSize:12,color:'var(--tx)',fontWeight:500}},props.titulo),
+      props.extra?h('p',{style:{fontSize:11,color:'var(--tx2)',marginTop:2}},props.extra):null
+    ),
+    props.driveLink?h('button',{style:{background:'transparent',border:'none',cursor:'pointer',fontSize:20,flexShrink:0},onClick:function(){window.open(props.driveLink,'_blank');}},'📄'):null,
+    props.onEdit?h('button',{className:'be',style:{padding:'3px 8px',fontSize:10,flexShrink:0},onClick:props.onEdit},'✏️'):null,
+    h('button',{className:'bd',style:{padding:'3px 8px',fontSize:10,flexShrink:0},onClick:props.onDel},'✕')
+  );
+}
+
+
+// ─── Forms ────────────────────────────────────────────────────────────
+function FormCampo(props) {
+  var state = useState(props.ini||{fecha:todayISO(),alcoholProbable:'',ph:'',comentario:'',vinoIds:[]});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h(VinosPicker,{vinos:props.vinos,selected:f.vinoIds,onChange:function(v){setF(function(p){return Object.assign({},p,{vinoIds:v});});}}),
+    h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,margin:'10px 0 8px'}},
+      h('div',null,h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+      h('div',null,h('span',{style:S.LB},'Alcohol prob %'),h('input',{value:f.alcoholProbable,onChange:s('alcoholProbable'),placeholder:'—'})),
+      h('div',null,h('span',{style:S.LB},'PH'),h('input',{value:f.ph,onChange:s('ph'),placeholder:'—'}))
+    ),
+    h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Comentario'),h('textarea',{rows:2,value:f.comentario,onChange:s('comentario'),placeholder:'Observaciones…'})),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){props.onSave(Object.assign({},f,{id:f.id||uid()}));}},  'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormFerm(props) {
+  var state = useState(props.ini||{fechaEncubado:todayISO(),horaEncubado:'',densidadEncubado:'',phEncubado:'',descripcion:'',vinoIds:[]});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h(VinosPicker,{vinos:props.vinos,selected:f.vinoIds,onChange:function(v){setF(function(p){return Object.assign({},p,{vinoIds:v});});}}),
+    h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,margin:'10px 0 8px'}},
+      h('div',null,h('span',{style:S.LB},'Fecha encubado'),h('input',{type:'date',value:f.fechaEncubado,onChange:s('fechaEncubado')})),
+      h('div',null,h('span',{style:S.LB},'Hora'),h('input',{type:'time',value:f.horaEncubado,onChange:s('horaEncubado')})),
+      h('div',null,h('span',{style:S.LB},'Densidad enc.'),h('input',{value:f.densidadEncubado,onChange:s('densidadEncubado'),placeholder:'g/L'})),
+      h('div',null,h('span',{style:S.LB},'pH enc.'),h('input',{value:f.phEncubado,onChange:s('phEncubado'),placeholder:'—'}))
+    ),
+    h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Descripción'),h('textarea',{rows:2,value:f.descripcion||'',onChange:s('descripcion'),placeholder:'Observaciones…'})),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){props.onSave(Object.assign({},f,{id:f.id||uid(),anotaciones:f.anotaciones||[]}));}}, 'Guardar ficha'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormAnot(props) {
+  var state = useState(props.ini||{fecha:todayISO(),densidad:'',descripcion:''});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}},
+      h('div',null,h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+      h('div',null,h('span',{style:S.LB},'Densidad'),h('input',{value:f.densidad,onChange:s('densidad'),placeholder:'g/L'}))
+    ),
+    h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Descripción'),h('textarea',{rows:2,value:f.descripcion,onChange:s('descripcion'),placeholder:'Estado…'})),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){props.onSave(Object.assign({},f,{id:f.id||uid()}));}}, 'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormSulf(props) {
+  var state = useState(props.ini||{fecha:todayISO(),dosis:'',comentario:'',vinoIds:[]});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h(VinosPicker,{vinos:props.vinos,selected:f.vinoIds,onChange:function(v){setF(function(p){return Object.assign({},p,{vinoIds:v});});}}),
+    h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,margin:'10px 0 8px'}},
+      h('div',null,h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+      h('div',null,h('span',{style:S.LB},'Dosis mg/L'),h('input',{value:f.dosis,onChange:s('dosis'),placeholder:'—'}))
+    ),
+    h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Comentario'),h('textarea',{rows:2,value:f.comentario,onChange:s('comentario'),placeholder:'Estado del vino…'})),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){props.onSave(Object.assign({},f,{id:f.id||uid()}));}}, 'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormHito(props) {
+  var state = useState(props.ini||{fecha:todayISO(),descripcion:'',vinoIds:[]});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h(VinosPicker,{vinos:props.vinos,selected:f.vinoIds,onChange:function(v){setF(function(p){return Object.assign({},p,{vinoIds:v});});}}),
+    h('div',{style:{margin:'10px 0 8px'}},h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+    h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Descripción'),h('textarea',{rows:2,value:f.descripcion,onChange:s('descripcion'),placeholder:'Primer trasiego…'})),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){if(!f.descripcion)return;props.onSave(Object.assign({},f,{id:f.id||uid()}));}}, 'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormCata(props) {
+  var state = useState(props.ini||{fecha:todayISO(),vinoId:'',notaCata:''});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h('span',{style:S.LB},'Vino catado'),
+    h(VinoSingle,{vinos:props.vinos,selected:f.vinoId,onChange:function(v){setF(function(p){return Object.assign({},p,{vinoId:v});});}}),
+    h('div',{style:{margin:'10px 0 8px'}},h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+    h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Nota de cata'),h('textarea',{rows:4,value:f.notaCata,onChange:s('notaCata'),placeholder:'Aromas, sabores…'})),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){if(!f.notaCata)return;props.onSave(Object.assign({},f,{id:f.id||uid()}));}}, 'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormVina(props) {
+  var state = useState(props.ini||{vinaNombre:'Grío',variedades:[{variedad:'Garnacha',kg:0}],vinoIds:[]});
+  var f=state[0], setF=state[1];
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+    h(VinosPicker,{vinos:props.vinos,selected:f.vinoIds,onChange:function(v){setF(function(p){return Object.assign({},p,{vinoIds:v});});}}),
+    h('div',{style:{margin:'10px 0 8px'}},
+      h('span',{style:S.LB},'Viña'),
+      h('div',{style:{display:'flex',gap:6}},
+        ['Grío','Quebracántaros'].map(function(n){
+          return h('button',{key:n,
+            style:{background:f.vinaNombre===n?'var(--g20)':'transparent',border:'1px solid '+(f.vinaNombre===n?'var(--g50)':'var(--br2)'),borderRadius:5,padding:'5px 12px',cursor:'pointer',fontFamily:'Montserrat',fontSize:11,fontWeight:600,color:f.vinaNombre===n?'var(--gold)':'var(--tx2)'},
+            onClick:function(){setF(function(p){return Object.assign({},p,{vinaNombre:n});});}
+          },n);
+        })
+      )
+    ),
+    h('span',{style:S.LB},'Variedades'),
+    f.variedades.map(function(va,j){
+      return h('div',{key:j,style:{display:'grid',gridTemplateColumns:'2fr 1fr 28px',gap:6,marginBottom:6,marginTop:6}},
+        h('select',{value:va.variedad,onChange:function(e){var nv=f.variedades.slice();nv[j]=Object.assign({},va,{variedad:e.target.value});setF(function(p){return Object.assign({},p,{variedades:nv});});}},
+          VARIEDADES.map(function(v){return h('option',{key:v},v);})
+        ),
+        h('input',{type:'number',value:va.kg||'',placeholder:'0',onChange:function(e){var nv=f.variedades.slice();nv[j]=Object.assign({},va,{kg:+e.target.value});setF(function(p){return Object.assign({},p,{variedades:nv});});}}),
+        f.variedades.length>1?h('button',{className:'bd',style:{padding:3,textAlign:'center'},onClick:function(){setF(function(p){return Object.assign({},p,{variedades:p.variedades.filter(function(_,k){return k!==j;})});});}},  '✕'):h('span')
+      );
+    }),
+    h('button',{className:'be',style:{width:'100%',padding:6,marginBottom:10},onClick:function(){setF(function(p){return Object.assign({},p,{variedades:p.variedades.concat([{variedad:'Garnacha',kg:0}])});});}},'+ Variedad'),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){props.onSave(Object.assign({},f,{id:f.id||uid()}));}}, 'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+function FormGasto(props) {
+  var state = useState({fecha:todayISO(),concepto:'',categoria:'general',ano:props.anoDefault?String(props.anoDefault):'',importe:'',notas:''});
+  var f=state[0], setF=state[1];
+  function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+  return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginBottom:12}},
+    h('p',{style:Object.assign({},S.H3,{marginBottom:12})},'Nuevo gasto'),
+    h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}},
+      h('div',{style:{gridColumn:'1/-1'}},h('span',{style:S.LB},'Concepto'),h('input',{value:f.concepto,onChange:s('concepto'),placeholder:'Azufre, corchos…'})),
+      h('div',null,h('span',{style:S.LB},'Importe €'),h('input',{type:'number',step:'0.01',value:f.importe,onChange:s('importe'),placeholder:'0.00'})),
+      h('div',null,h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+      h('div',{style:{gridColumn:'1/-1'}},h('span',{style:S.LB},'Añada'),
+        h('select',{value:f.ano,onChange:s('ano')},
+          h('option',{value:''},'Sin añada'),
+          ANOS.map(function(a){return h('option',{key:a,value:String(a)},a);})
+        )
+      )
+    ),
+    h('div',{style:{marginBottom:10}},
+      h('span',{style:S.LB},'Categoría'),
+      h('div',{style:{display:'flex',gap:5,flexWrap:'wrap',marginTop:4}},
+        CATS_ECO.map(function(c){
+          return h('button',{key:c.id,
+            style:{background:f.categoria===c.id?'var(--g20)':'transparent',border:'1px solid '+(f.categoria===c.id?'var(--g50)':'var(--br2)'),borderRadius:5,padding:'5px 8px',cursor:'pointer',display:'flex',alignItems:'center',gap:4},
+            onClick:function(){setF(function(p){return Object.assign({},p,{categoria:c.id});});}
+          },
+            h('span',null,c.emoji),
+            h('span',{style:{fontFamily:'Montserrat',fontSize:9,fontWeight:600,color:f.categoria===c.id?'var(--gold)':'var(--tx2)'}},c.label)
+          );
+        })
+      )
+    ),
+    h('div',{style:{display:'flex',gap:8}},
+      h('button',{className:'bg',onClick:function(){if(!f.concepto||!f.importe)return;props.onSave(Object.assign({},f,{id:uid(),importe:+f.importe}));}}, 'Guardar'),
+      h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+    )
+  );
+}
+
+
+// ─── PgInicio ─────────────────────────────────────────────────────────
+function PgInicio() {
+  var ctx = useApp();
+  var state1 = useState({}); var expP=state1[0], setExpP=state1[1];
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var conD = ctx.vends.filter(function(v){return vendLitros(v)>0||vendKg(v)>0;});
+  var maxL = Math.max.apply(null, conD.map(vendLitros).concat([1]));
+  var mesAct = new Date().getMonth();
+  var proximas = (function(){
+    var cf = ctx.faenas.slice().map(function(f){return Object.assign({},f,{_d:parseDate(f.dia)});}).filter(function(f){return f._d&&f._d>=hoy;}).sort(function(a,b){return a._d-b._d;});
+    if(cf.length>=2)return cf.slice(0,2);
+    var sf = ctx.faenas.slice().filter(function(f){return !parseDate(f.dia);}).sort(function(a,b){return MORD[a.mes]-MORD[b.mes];}).filter(function(f){return MORD[f.mes]>=mesAct;});
+    return cf.concat(sf).slice(0,2);
+  })();
+  var totL = conD.reduce(function(s,v){return s+vendLitros(v);},0);
+  var totK = conD.reduce(function(s,v){return s+vendKg(v);},0);
+
+  return h('div',{className:'fade'},
+    h('div',{style:{textAlign:'center',padding:'28px 0 24px',borderBottom:'1px solid var(--br2)',marginBottom:22}},
+      h(OriLogo,{size:62}),
+      h('h1',{style:{fontFamily:'Montserrat',fontSize:26,fontWeight:700,letterSpacing:'.22em',textTransform:'uppercase',color:'var(--gold)',marginTop:14}},'Bodega Orioles'),
+      h('p',{style:{fontFamily:'Montserrat',fontSize:10,fontWeight:500,letterSpacing:'.18em',textTransform:'uppercase',color:'var(--tx2)',marginTop:6}},'Quebracántaros · Valdejalón'),
+      h('p',{style:{fontFamily:'Montserrat',fontSize:9,color:'var(--tx3)',marginTop:3,letterSpacing:'.1em',textTransform:'uppercase'}},ctx.socios.length+' socios · desde 2020')
+    ),
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:24}},
+      [['⚖️',totK>0?totK.toLocaleString()+'kg':'—','Uva'],['🍶',totL>0?totL.toLocaleString()+'L':'—','Vino'],['📆',String(ctx.vends.length),'Vendimias'],['👥',String(ctx.socios.length),'Socios']].map(function(item,i){
+        return h('div',{key:i,style:Object.assign({},S.C,{textAlign:'center',padding:'12px 6px'})},
+          h('p',{style:{fontSize:20,marginBottom:3}},item[0]),
+          h('p',{style:{fontFamily:'serif',fontSize:19,color:'var(--gold)',lineHeight:1}},item[1]),
+          h('p',{style:{fontSize:9,fontWeight:600,letterSpacing:'.07em',textTransform:'uppercase',color:'var(--tx3)',marginTop:3}},item[2])
+        );
+      })
+    ),
+    h('p',{style:S.H3},'📅 Próximas faenas'),
+    proximas.length===0
+      ? h('div',{style:Object.assign({},S.C,{textAlign:'center',padding:20,marginBottom:22})},h('p',{style:{fontSize:12,color:'var(--tx3)'}},'Ve a Faenas y fija las fechas.'))
+      : h('div',{style:{display:'flex',flexDirection:'column',gap:10,marginBottom:24}},
+          proximas.map(function(f,idx){
+            var dias=diasR(f.dia);
+            var conf=ctx.socios.filter(function(sc){return ctx.ga(f.id,sc.id)==='si';}).length;
+            var exp=expP[f.id]||false;
+            var dc=dias===null?'var(--tx3)':dias===0?'rgba(255,220,50,.95)':dias<0?'rgba(200,80,80,.8)':dias<=7?'rgba(255,150,50,.9)':dias<=30?'var(--gold)':'var(--tx3)';
+            return h('div',{key:f.id,style:Object.assign({},S.C,{border:'1px solid '+(idx===0?'var(--g35)':'var(--br)')})},
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}},
+                h('div',{style:{flex:1}},
+                  h('div',{style:{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:5}},
+                    idx===0?h('span',{style:S.MB},'PRÓXIMA'):null,
+                    h('span',{style:{fontSize:17}},f.emoji),
+                    h('span',{style:{fontFamily:'Montserrat',fontSize:13,fontWeight:700,color:'var(--tx)'}},f.nombre)
+                  ),
+                  h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                    f.dia?h('span',{style:{fontSize:11,color:'var(--gold)',fontWeight:600}},'📅 '+showDate(f.dia)):h('span',{style:{fontSize:11,color:'var(--tx3)'}},'Sin fecha · '+f.mes),
+                    dias!==null&&f.dia?h('span',{style:{fontSize:10,fontWeight:700,color:dc}},dias===0?'¡HOY!':dias<0?'Hace '+Math.abs(dias)+'d':dias===1?'Mañana':'En '+dias+'d'):null
+                  )
+                ),
+                h('div',{style:{textAlign:'center',background:'var(--g10)',border:'1px solid var(--g20)',borderRadius:5,padding:'7px 9px',flexShrink:0,minWidth:46}},
+                  h('p',{style:{fontFamily:'serif',fontSize:22,color:'var(--gold)',lineHeight:1}},conf),
+                  h('p',{style:{fontSize:9,color:'var(--tx3)',fontWeight:600}},'/'+ctx.socios.length+' sí')
+                )
+              ),
+              h(SocioBotones,{fid:f.id}),
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginTop:10}},
+                h('p',{style:{fontSize:11,color:'var(--tx3)',lineHeight:1.5,flex:1,marginRight:8}},exp?f.desc:f.desc.slice(0,60)+(f.desc.length>60?'…':'')),
+                h('button',{className:'be',style:{fontSize:9,flexShrink:0},onClick:function(){setExpP(function(p){var r=Object.assign({},p);r[f.id]=!exp;return r;});}},exp?'Menos':'Ver más')
+              )
+            );
+          })
+        ),
+    conD.length>0?[
+      h('p',{key:'h3',style:S.H3},'Producción por año'),
+      h('div',{key:'chart',style:Object.assign({},S.C,{marginBottom:22})},
+        conD.slice().sort(function(a,b){return a.ano-b.ano;}).map(function(v){
+          return h('div',{key:v.ano,style:{display:'flex',alignItems:'center',gap:8,marginBottom:9}},
+            h('span',{style:{fontFamily:'Montserrat',fontSize:11,fontWeight:600,color:'var(--gold)',width:34,flexShrink:0}},v.ano),
+            h('div',{style:{flex:1,height:22,background:'rgba(255,255,255,.04)',borderRadius:4,overflow:'hidden'}},
+              h('div',{style:{height:'100%',width:(vendLitros(v)/maxL*100)+'%',background:'linear-gradient(90deg,rgba(232,168,32,.5),var(--gold))',borderRadius:4,display:'flex',alignItems:'center',paddingLeft:7}},
+                h('span',{style:{fontSize:10,fontWeight:700,color:'#0D0D0D'}},vendLitros(v)+'L')
+              )
+            ),
+            h('span',{style:{fontSize:10,color:'var(--tx3)',width:46,textAlign:'right'}},vendKg(v)+'kg')
+          );
+        })
+      )
+    ]:null,
+    h('p',{style:S.H3},'Socios'),
+    h('div',{style:{display:'flex',flexWrap:'wrap',gap:7}},
+      ctx.socios.map(function(sc){
+        return h('div',{key:sc.id,
+          style:{display:'flex',alignItems:'center',gap:8,background:'var(--sur)',border:'1px solid var(--br)',borderRadius:7,padding:'9px 13px',flex:'1 1 auto',minWidth:130,cursor:'pointer'},
+          onClick:function(){ctx.setTab('socios');ctx.setOpenSocio(sc.id);}
+        },
+          h(Av,{nombre:sc.nombre,foto:sc.foto,size:34}),
+          h('div',null,
+            h('p',{style:{fontFamily:'Montserrat',fontSize:13,fontWeight:600,color:'var(--tx)'}},sc.nombre+(sc.apodo?' '+sc.apodo:'')),
+            h('p',{style:{fontSize:10,color:'var(--gold)',textTransform:'uppercase',letterSpacing:'.06em'}},sc.rol)
+          )
+        );
+      })
+    )
+  );
+}
+
+// ─── PgVendimias ──────────────────────────────────────────────────────
+function PgAnadaList() {
+  var ctx = useApp();
+  var conD = ctx.vends.filter(function(v){return vendLitros(v)>0||vendKg(v)>0;});
+  var mejor = conD.slice().sort(function(a,b){return vendLitros(b)-vendLitros(a);})[0]||null;
+  return h('div',{className:'fade'},
+    h('h2',{style:S.H2},'Vendimias'),
+    h('p',{style:S.DSC},'Selecciona una añada'),
+    ctx.vends.map(function(v){
+      var litT=vendLitros(v), kgT=vendKg(v), nV=(v.vinos||[]).length;
+      return h('div',{key:v.ano,
+        style:{background:'var(--sur)',border:'1px solid var(--br)',borderRadius:7,padding:14,marginBottom:8,cursor:'pointer'},
+        onClick:function(){ctx.setOpenV(v.ano);ctx.setVTab('general');}
+      },
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
+          h('div',null,
+            h('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
+              h('span',{style:{fontFamily:'serif',fontSize:32,color:'var(--gold)',lineHeight:1}},v.ano),
+              mejor&&v.ano===mejor.ano&&litT>0?h('span',{style:S.TG},'🏆 MEJOR'):null,
+              litT===0&&kgT===0?h('span',{style:{fontSize:10,color:'var(--tx3)'}},'Sin datos'):null
+            ),
+            h('p',{style:{fontSize:11,color:'var(--tx2)',marginBottom:6}},nV+' vino'+(nV!==1?'s':'')+' · '+(v.catas||[]).length+' catas'),
+            h('div',{style:{display:'flex',flexWrap:'wrap',gap:4}},
+              (v.vinos||[]).map(function(vn){return h('span',{key:vn.id,style:S.TG},vn.nombre);})
+            )
+          ),
+          h('div',{style:{textAlign:'right'}},
+            litT>0?h('p',{style:{fontFamily:'serif',fontSize:22,color:'var(--tx)'}},litT+' L'):null,
+            kgT>0?h('p',{style:{fontSize:11,color:'var(--tx2)'}},kgT+' kg'):null,
+            h('p',{style:{fontSize:10,color:'var(--gold)',marginTop:8}},'▶ Abrir')
+          )
+        )
+      );
+    })
+  );
+}
+
+function PgAnadaFicha() {
+  var ctx = useApp();
+  var s1=useState(''), nuevoNombre=s1[0], setNuevoNombre=s1[1];
+  var s2=useState({}), expandV=s2[0], setExpandV=s2[1];
+  var s3=useState(null), openFerm=s3[0], setOpenFerm=s3[1];
+  var s4=useState(false), frmGen=s4[0], setFrmGen=s4[1];
+  var s5=useState(false), frmVina=s5[0], setFrmVina=s5[1];
+  var s6=useState(false), frmCampo=s6[0], setFrmCampo=s6[1];
+  var s7=useState(false), frmFerm=s7[0], setFrmFerm=s7[1];
+  var s8=useState(null), frmAnot=s8[0], setFrmAnot=s8[1];
+  var s9=useState(false), frmSulf=s9[0], setFrmSulf=s9[1];
+  var s10=useState(false), frmAnal=s10[0], setFrmAnal=s10[1];
+  var s11=useState(false), frmHito=s11[0], setFrmHito=s11[1];
+  var s12=useState(false), frmCata=s12[0], setFrmCata=s12[1];
+  var s13=useState(null), editCampo=s13[0], setEditCampo=s13[1];
+  var s14=useState(null), editVina=s14[0], setEditVina=s14[1];
+  var s15=useState(null), editSulf=s15[0], setEditSulf=s15[1];
+  var s16=useState(null), editHito=s16[0], setEditHito=s16[1];
+  var s17=useState(null), editCata=s17[0], setEditCata=s17[1];
+  var s18=useState(null), editFerm=s18[0], setEditFerm=s18[1];
+  var s19=useState(null), editAnot=s19[0], setEditAnot=s19[1];
+  var s20=useState(null), openAnalId=s20[0], setOpenAnalId=s20[1];
+
+  var v = ctx.vends.find(function(x){return x.ano===ctx.openV;});
+  if(!v) return null;
+
+  function updV(fn){ctx.setVends(function(p){return p.map(function(vv){return vv.ano===ctx.openV?fn(vv):vv;});});}
+  function updVino(vid,k,val){updV(function(vv){return Object.assign({},vv,{vinos:vv.vinos.map(function(vn){return vn.id===vid?Object.assign({},vn,{[k]:val}):vn;})});});}
+  function updEntry(field,id,data){updV(function(vv){var r=Object.assign({},vv);r[field]=r[field].map(function(e){return e.id===id?Object.assign({},e,data):e;});return r;});}
+  function delEntry(field,id){updV(function(vv){var r=Object.assign({},vv);r[field]=r[field].filter(function(x){return x.id!==id;});return r;});}
+  function updFerm(fid,fn){updV(function(vv){return Object.assign({},vv,{fermentaciones:vv.fermentaciones.map(function(fe){return fe.id===fid?fn(fe):fe;})});});}
+  function getNames(ids){return (ids||[]).map(function(id){var vn=v.vinos.find(function(x){return x.id===id;});return vn?vn.nombre:null;}).filter(Boolean);}
+  function VBadges(ids){
+    var names=getNames(ids);
+    if(!names.length)return null;
+    return h('div',{style:{display:'flex',flexWrap:'wrap',gap:3,marginBottom:4}},
+      names.map(function(n){return h('span',{key:n,style:Object.assign({},S.MB,{fontSize:8})},'🍷 '+n);})
+    );
+  }
+
+  var tabContent = null;
+  if(ctx.vTab==='general') tabContent = renderTabGeneral();
+  else if(ctx.vTab==='vinas') tabContent = renderTabVinas();
+  else if(ctx.vTab==='campo') tabContent = renderTabCampo();
+  else if(ctx.vTab==='fermentacion') tabContent = renderTabFerm();
+  else if(ctx.vTab==='sulfuroso') tabContent = renderTabSulf();
+  else if(ctx.vTab==='analisis') tabContent = renderTabAnal();
+  else if(ctx.vTab==='hitos') tabContent = renderTabHitos();
+  else if(ctx.vTab==='catas') tabContent = renderTabCatas();
+
+  function renderTabGeneral(){
+    return h('div',null,
+      h('p',{style:S.DSC},'Los vinos de esta añada.'),
+      (v.vinos||[]).map(function(vn){
+        var exp=expandV[vn.id]!==false;
+        return h('div',{key:vn.id,style:Object.assign({},S.C,{marginBottom:10})},
+          h('div',{style:{display:'flex',alignItems:'center',gap:8,cursor:'pointer'},onClick:function(){setExpandV(function(p){var r=Object.assign({},p);r[vn.id]=!exp;return r;});}},
+            h('span',{style:{fontSize:11,color:'var(--gold)'}},exp?'▼':'▶'),
+            h('span',{style:{fontFamily:'serif',fontSize:22,color:'var(--gold)',flex:1}},vn.nombre),
+            vn.litros>0?h('span',{style:{fontSize:11,color:'var(--tx2)'}},vn.litros+'L'):null,
+            h('button',{className:'bd',style:{padding:'3px 8px',fontSize:10},onClick:function(e){e.stopPropagation();if(window.confirm('¿Eliminar?'))updV(function(vv){return Object.assign({},vv,{vinos:vv.vinos.filter(function(x){return x.id!==vn.id;})});});}}, '✕')
+          ),
+          exp?h('div',{style:{marginTop:12}},
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}},
+              h('div',null,h('span',{style:S.LB},'Nombre'),h(SI,{value:vn.nombre,save:function(val){updVino(vn.id,'nombre',val);}})),
+              h('div',null,h('span',{style:S.LB},'Fecha vendimia'),h(SD,{value:vn.fechaVendimia||'',save:function(val){updVino(vn.id,'fechaVendimia',val);}})),
+              h('div',null,h('span',{style:S.LB},'Litros'),h(SN,{value:vn.litros||'',save:function(val){updVino(vn.id,'litros',val);}}))
+            ),
+            h('div',{style:{marginBottom:10}},
+              h('span',{style:S.LB},'Variedades'),
+              h('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}},
+                VARIEDADES.map(function(va){
+                  var sel=(vn.variedades||[]).indexOf(va)>=0;
+                  return h('button',{key:va,
+                    style:{background:sel?'var(--g20)':'transparent',border:'1px solid '+(sel?'var(--g50)':'var(--br2)'),borderRadius:5,padding:'5px 12px',cursor:'pointer',fontFamily:'Montserrat',fontSize:11,fontWeight:600,color:sel?'var(--gold)':'var(--tx2)'},
+                    onClick:function(){var c=vn.variedades||[];updVino(vn.id,'variedades',sel?c.filter(function(x){return x!==va;}):c.concat([va]));}
+                  },va);
+                })
+              )
+            ),
+            h('div',null,h('span',{style:S.LB},'Notas'),h(ST,{value:vn.notas||'',save:function(val){updVino(vn.id,'notas',val);},rows:3,placeholder:'Condiciones, características…'}))
+          ):null
+        );
+      }),
+      frmGen
+        ? h('div',{style:Object.assign({},S.C,{marginTop:8})},
+            h('p',{style:Object.assign({},S.H3,{marginBottom:10})},'Nombre del nuevo vino'),
+            h('input',{value:nuevoNombre,onChange:function(e){setNuevoNombre(e.target.value);},placeholder:'Ej: Garnacha Joven 2026',style:{marginBottom:10}}),
+            h('div',{style:{display:'flex',gap:8}},
+              h('button',{className:'bg',onClick:function(){if(!nuevoNombre.trim())return;var nv=makeVino(nuevoNombre.trim());updV(function(vv){return Object.assign({},vv,{vinos:vv.vinos.concat([nv])});});setNuevoNombre('');setFrmGen(false);setExpandV(function(p){var r=Object.assign({},p);r[nv.id]=true;return r;});}}, 'Crear'),
+              h('button',{className:'bo',onClick:function(){setFrmGen(false);}},'Cancelar')
+            )
+          )
+        : h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmGen(true);}},'+ Crear vino')
+    );
+  }
+
+  function renderTabVinas(){
+    return h('div',null,
+      h('p',{style:S.DSC},'Kg por viña y variedad.'),
+      (v.vinas||[]).map(function(e){
+        if(editVina===e.id)return h(FormVina,{key:e.id,vinos:v.vinos,ini:e,onSave:function(d){updEntry('vinas',e.id,d);setEditVina(null);},onCancel:function(){setEditVina(null);}});
+        var kgTotal=(e.variedades||[]).reduce(function(s,va){return s+(+va.kg||0);},0);
+        return h(EntradaLog,{key:e.id,fecha:'',titulo:e.vinaNombre+' — '+((e.variedades||[]).map(function(va){return va.variedad+' '+va.kg+'kg';}).join(', ')),extra:'Total: '+kgTotal+' kg',vinoBadges:getNames(e.vinoIds),onEdit:function(){setEditVina(e.id);},onDel:function(){delEntry('vinas',e.id);}});
+      }),
+      frmVina?h(FormVina,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{vinas:(vv.vinas||[]).concat([d])});});setFrmVina(false);},onCancel:function(){setFrmVina(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmVina(true);}},'+ Añadir entrada de viña')
+    );
+  }
+
+  function renderTabCampo(){
+    return h('div',null,
+      h('p',{style:S.DSC},'Mediciones de campo.'),
+      (v.campo||[]).map(function(e){
+        if(editCampo===e.id)return h(FormCampo,{key:e.id,vinos:v.vinos,ini:e,onSave:function(d){updEntry('campo',e.id,d);setEditCampo(null);},onCancel:function(){setEditCampo(null);}});
+        return h(EntradaLog,{key:e.id,fecha:e.fecha,titulo:'Alc.: '+(e.alcoholProbable||'—')+'% · PH: '+(e.ph||'—'),extra:e.comentario,vinoBadges:getNames(e.vinoIds),onEdit:function(){setEditCampo(e.id);},onDel:function(){delEntry('campo',e.id);}});
+      }),
+      frmCampo?h(FormCampo,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{campo:(vv.campo||[]).concat([d])});});setFrmCampo(false);},onCancel:function(){setFrmCampo(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmCampo(true);}},'+ Añadir medición')
+    );
+  }
+
+  function renderTabFerm(){
+    var ferms=v.fermentaciones||[];
+    return h('div',null,
+      h('p',{style:S.DSC},'Fichas de fermentación.'),
+      ferms.map(function(ferm){
+        if(editFerm===ferm.id)return h(FormFerm,{key:ferm.id,vinos:v.vinos,ini:ferm,onSave:function(d){updV(function(vv){return Object.assign({},vv,{fermentaciones:vv.fermentaciones.map(function(fe){return fe.id===ferm.id?Object.assign({},fe,d):fe;})});});setEditFerm(null);},onCancel:function(){setEditFerm(null);}});
+        var isO=openFerm===ferm.id;
+        return h('div',{key:ferm.id,style:{marginBottom:isO?0:10}},
+          h('div',{style:Object.assign({},S.C,{cursor:'pointer',borderRadius:isO?'7px 7px 0 0':7}),onClick:function(){setOpenFerm(isO?null:ferm.id);}},
+            h('div',{style:{display:'flex',justifyContent:'space-between'}},
+              h('div',{style:{flex:1}},
+                VBadges(ferm.vinoIds),
+                h('p',{style:{fontFamily:'Montserrat',fontSize:13,fontWeight:700,color:'var(--tx)',marginBottom:4}},'Encubado: '+showDate(ferm.fechaEncubado)+(ferm.horaEncubado?' '+ferm.horaEncubado:'')),
+                ferm.densidadEncubado?h('span',{style:{fontSize:11,color:'var(--tx2)'}},'Dens: '+ferm.densidadEncubado+' g/L'):null,
+                ferm.phEncubado?h('span',{style:{fontSize:11,color:'var(--tx2)',marginLeft:10}},' pH: '+ferm.phEncubado):null,
+                h('p',{style:{fontSize:10,color:'var(--tx3)',marginTop:4}},(ferm.anotaciones||[]).length+' anotaciones')
+              ),
+              h('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}},
+                h('span',{style:{fontSize:10,color:'var(--gold)'}},isO?'▲':'▼'),
+                h('button',{className:'be',style:{padding:'3px 8px',fontSize:10},onClick:function(e){e.stopPropagation();setOpenFerm(null);setEditFerm(ferm.id);}},'✏️'),
+                h('button',{className:'bd',style:{padding:'3px 8px',fontSize:10},onClick:function(e){e.stopPropagation();if(window.confirm('¿Eliminar?'))delEntry('fermentaciones',ferm.id);}},'✕')
+              )
+            )
+          ),
+          isO?h('div',{style:S.DB},
+            h('p',{style:Object.assign({},S.H3,{marginBottom:10,fontSize:10})},'Anotaciones'),
+            (ferm.anotaciones||[]).map(function(an){
+              if(editAnot&&editAnot.fid===ferm.id&&editAnot.aid===an.id)
+                return h(FormAnot,{key:an.id,ini:an,onSave:function(d){updFerm(ferm.id,function(fe){return Object.assign({},fe,{anotaciones:(fe.anotaciones||[]).map(function(a){return a.id===an.id?Object.assign({},a,d):a;})});});setEditAnot(null);},onCancel:function(){setEditAnot(null);}});
+              return h('div',{key:an.id,style:{background:'var(--bg)',border:'1px solid var(--br2)',borderRadius:5,padding:'8px 10px',marginBottom:6,display:'flex',justifyContent:'space-between'}},
+                h('div',null,
+                  an.fecha?h('p',{style:{fontSize:10,color:'var(--gold)',fontWeight:600,marginBottom:2}},'📅 '+showDate(an.fecha)):null,
+                  an.densidad?h('p',{style:{fontSize:12}},'Dens: '+h('b',{style:{color:'var(--gold)'}},an.densidad+' g/L')):null,
+                  an.descripcion?h('p',{style:{fontSize:11,color:'var(--tx2)',marginTop:2}},an.descripcion):null
+                ),
+                h('div',{style:{display:'flex',gap:4,marginLeft:8}},
+                  h('button',{className:'be',style:{padding:'3px 6px',fontSize:10},onClick:function(){setEditAnot({fid:ferm.id,aid:an.id});}},'✏️'),
+                  h('button',{className:'bd',style:{padding:'3px 6px',fontSize:10},onClick:function(){updFerm(ferm.id,function(fe){return Object.assign({},fe,{anotaciones:(fe.anotaciones||[]).filter(function(x){return x.id!==an.id;})});});}},'✕')
+                )
+              );
+            }),
+            frmAnot===ferm.id
+              ?h(FormAnot,{onSave:function(d){updFerm(ferm.id,function(fe){return Object.assign({},fe,{anotaciones:(fe.anotaciones||[]).concat([d])});});setFrmAnot(null);},onCancel:function(){setFrmAnot(null);}})
+              :h('button',{className:'be',style:{width:'100%',padding:8,marginTop:4},onClick:function(){setFrmAnot(ferm.id);}},'+ Anotación')
+          ):null
+        );
+      }),
+      frmFerm?h(FormFerm,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{fermentaciones:(vv.fermentaciones||[]).concat([d])});});setFrmFerm(false);setOpenFerm(d.id);},onCancel:function(){setFrmFerm(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmFerm(true);}},'+ Nueva ficha')
+    );
+  }
+
+  function renderTabSulf(){
+    var list=v.sulfuroso||[];
+    var total=list.reduce(function(s,e){return s+(+e.dosis||0);},0);
+    return h('div',null,
+      h('p',{style:S.DSC},'Adiciones de SO₂.'),
+      total>0?h('p',{style:{fontSize:11,color:'var(--gold)',fontWeight:600,marginBottom:12}},'Total: '+total+' mg/L'):null,
+      list.map(function(e){
+        if(editSulf===e.id)return h(FormSulf,{key:e.id,vinos:v.vinos,ini:e,onSave:function(d){updEntry('sulfuroso',e.id,d);setEditSulf(null);},onCancel:function(){setEditSulf(null);}});
+        return h(EntradaLog,{key:e.id,fecha:e.fecha,titulo:'Dosis: '+(e.dosis||'—')+' mg/L',extra:e.comentario,vinoBadges:getNames(e.vinoIds),onEdit:function(){setEditSulf(e.id);},onDel:function(){delEntry('sulfuroso',e.id);}});
+      }),
+      frmSulf?h(FormSulf,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{sulfuroso:(vv.sulfuroso||[]).concat([d])});});setFrmSulf(false);},onCancel:function(){setFrmSulf(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmSulf(true);}},'+ Registrar adición')
+    );
+  }
+
+  function renderTabAnal(){
+    var CAMPOS=[['Alcohol','alcohol','%'],['Densidad','densidad','g/L'],['PH','ph',''],['SO2 total','sulfurosoTotal','mg/L'],['SO2 libre','sulfurosoLibre','mg/L'],['Acidez vol.','acidezVolatil','g/L'],['Acidez total','acidezTotal','g/L'],['Extracto seco','extractoSeco','g/L'],['Azúcares','azucaresReductores','g/L']];
+    function FormAnalLocal(props) {
+      var emp={}; CAMPOS.forEach(function(c){emp[c[1]]='';});
+      var state=useState(props.ini||Object.assign({fecha:todayISO()},emp,{driveLink:'',vinoIds:[]}));
+      var f=state[0],setF=state[1];
+      function s(k){return function(e){setF(function(p){var r=Object.assign({},p);r[k]=e.target.value;return r;});};}
+      return h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12,marginTop:8}},
+        h(VinosPicker,{vinos:props.vinos,selected:f.vinoIds,onChange:function(vl){setF(function(p){return Object.assign({},p,{vinoIds:vl});});}}),
+        h('div',{style:{marginTop:10,marginBottom:8}},h('span',{style:S.LB},'Fecha'),h('input',{type:'date',value:f.fecha,onChange:s('fecha')})),
+        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:8,marginBottom:8}},
+          CAMPOS.map(function(c){return h('div',{key:c[1]},h('span',{style:S.LB},c[0]+(c[2]?' ('+c[2]+')':'')),h('input',{value:f[c[1]],onChange:s(c[1]),placeholder:'—'}));})
+        ),
+        h('div',{style:{marginBottom:8}},h('span',{style:S.LB},'Enlace Drive'),h('input',{value:f.driveLink,onChange:s('driveLink'),placeholder:'https://drive.google.com/…'})),
+        h('div',{style:{display:'flex',gap:8}},
+          h('button',{className:'bg',onClick:function(){props.onSave(Object.assign({},f,{id:f.id||uid()}));}}, 'Guardar'),
+          h('button',{className:'bo',onClick:props.onCancel},'Cancelar')
+        )
+      );
+    }
+    var lista=v.analisis||[];
+    return h('div',null,
+      h('p',{style:S.DSC},'Análisis de laboratorio.'),
+      lista.map(function(an){
+        if(openAnalId===an.id||false){} // shown below
+        return h('div',{key:an.id,style:{background:'var(--sur)',border:'1px solid var(--br)',borderRadius:7,padding:'11px 13px',marginBottom:8,cursor:'pointer'},
+          onClick:function(){setOpenAnalId(openAnalId===an.id?null:an.id);}
+        },
+          VBadges(an.vinoIds),
+          an.fecha?h('p',{style:{fontSize:10,color:'var(--gold)',fontWeight:600,marginBottom:3}},'📅 '+showDate(an.fecha)):null,
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('div',{style:{display:'flex',flexWrap:'wrap',gap:10}},
+              an.alcohol?h('span',{style:{fontSize:12}},'Alc: '+an.alcohol+'%'):null,
+              an.ph?h('span',{style:{fontSize:12}},'pH: '+an.ph):null,
+              an.densidad?h('span',{style:{fontSize:12}},'Dens: '+an.densidad):null
+            ),
+            h('div',{style:{display:'flex',alignItems:'center',gap:8}},
+              an.driveLink?h('button',{style:{background:'transparent',border:'none',cursor:'pointer',fontSize:22},onClick:function(e){e.stopPropagation();window.open(an.driveLink,'_blank');}},'📄'):null,
+              h('span',{style:{fontSize:10,color:'var(--gold)'}},openAnalId===an.id?'▲':'▼')
+            )
+          ),
+          openAnalId===an.id?h('div',{style:{borderTop:'1px solid var(--br2)',marginTop:10,paddingTop:10}},
+            h('div',{style:{display:'flex',gap:8,marginBottom:8}},
+              h('button',{className:'be',onClick:function(e){e.stopPropagation();setOpenAnalId(null);/* edit handled separately */}},'✏️ Editar (próx.)'),
+              h('button',{className:'bd',onClick:function(e){e.stopPropagation();delEntry('analisis',an.id);}},'Eliminar')
+            ),
+            an.driveLink?h('button',{className:'bg',style:{width:'100%',padding:9},onClick:function(e){e.stopPropagation();window.open(an.driveLink,'_blank');}},'📄 Abrir PDF'):null
+          ):null
+        );
+      }),
+      frmAnal?h(FormAnalLocal,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{analisis:(vv.analisis||[]).concat([d])});});setFrmAnal(false);},onCancel:function(){setFrmAnal(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmAnal(true);}},'+ Añadir análisis')
+    );
+  }
+
+  function renderTabHitos(){
+    var iconT={hito:'📌',campo:'🔬',sulf:'🧪',anal:'📊',ferm:'🍷'};
+    var todos=[]
+      .concat((v.hitos||[]).map(function(h2){return Object.assign({},h2,{_t:'hito'});}))
+      .concat((v.campo||[]).map(function(m){return Object.assign({},m,{_t:'campo',descripcion:'Campo — Alc.: '+(m.alcoholProbable||'—')+'% · PH: '+(m.ph||'—')+(m.comentario?' · '+m.comentario:'')});}))
+      .concat((v.sulfuroso||[]).map(function(s2){return Object.assign({},s2,{_t:'sulf',descripcion:'SO₂ — '+(s2.dosis||'—')+' mg/L'});}))
+      .concat((v.fermentaciones||[]).map(function(fe){return Object.assign({},fe,{fecha:fe.fechaEncubado,_t:'ferm',descripcion:'Encubado — Dens.: '+(fe.densidadEncubado||'—')});}));
+    todos.sort(function(a,b){var da=parseDate(a.fecha),db=parseDate(b.fecha);if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return da-db;});
+    return h('div',null,
+      h('p',{style:S.DSC},'Línea de tiempo de la añada.'),
+      todos.map(function(item,i){
+        if(item._t==='hito'&&editHito===item.id)
+          return h(FormHito,{key:item.id,vinos:v.vinos,ini:item,onSave:function(d){updEntry('hitos',item.id,d);setEditHito(null);},onCancel:function(){setEditHito(null);}});
+        return h('div',{key:item.id||i,style:{display:'flex',gap:10,marginBottom:8}},
+          h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center'}},
+            h('div',{style:{width:28,height:28,borderRadius:'50%',background:'var(--g10)',border:'1px solid var(--g20)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,flexShrink:0}},iconT[item._t]||'📌'),
+            i<todos.length-1?h('div',{style:{width:1,flex:1,background:'var(--br2)',margin:'3px 0'}}):null
+          ),
+          h('div',{style:{flex:1,paddingBottom:8}},
+            VBadges(item.vinoIds),
+            item.fecha?h('p',{style:{fontSize:10,color:'var(--gold)',fontWeight:600,marginBottom:2}},'📅 '+showDate(item.fecha)):null,
+            h('p',{style:{fontSize:12,color:'var(--tx)',lineHeight:1.5}},item.descripcion),
+            item._t==='hito'?h('div',{style:{display:'flex',gap:5,marginTop:4}},
+              h('button',{className:'be',style:{padding:'2px 7px',fontSize:9},onClick:function(){setEditHito(item.id);}},'✏️'),
+              h('button',{className:'bd',style:{padding:'2px 7px',fontSize:9},onClick:function(){delEntry('hitos',item.id);}},'✕')
+            ):null
+          )
+        );
+      }),
+      frmHito?h(FormHito,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{hitos:(vv.hitos||[]).concat([d])});});setFrmHito(false);},onCancel:function(){setFrmHito(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmHito(true);}},'+ Añadir hito')
+    );
+  }
+
+  function renderTabCatas(){
+    var catas=v.catas||[];
+    return h('div',null,
+      h('p',{style:S.DSC},'Registro de catas.'),
+      catas.slice().sort(function(a,b){var da=parseDate(a.fecha),db=parseDate(b.fecha);if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return db-da;}).map(function(c){
+        if(editCata===c.id)return h(FormCata,{key:c.id,vinos:v.vinos,ini:c,onSave:function(d){updEntry('catas',c.id,d);setEditCata(null);},onCancel:function(){setEditCata(null);}});
+        var vinoName=((v.vinos.find(function(vn){return vn.id===c.vinoId;}))||{nombre:'?'}).nombre;
+        return h('div',{key:c.id,style:Object.assign({},S.C,{marginBottom:10})},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}},
+            h('div',null,
+              c.fecha?h('p',{style:{fontSize:10,color:'var(--gold)',fontWeight:600,marginBottom:4}},'📅 '+showDate(c.fecha)):null,
+              h('span',{style:S.TG},'🍷 '+vinoName)
+            ),
+            h('div',{style:{display:'flex',gap:6}},
+              h('button',{className:'be',style:{padding:'3px 8px',fontSize:10},onClick:function(){setEditCata(c.id);}},'✏️'),
+              h('button',{className:'bd',style:{padding:'3px 8px',fontSize:10},onClick:function(){updV(function(vv){return Object.assign({},vv,{catas:vv.catas.filter(function(x){return x.id!==c.id;})});});}},'✕')
+            )
+          ),
+          h('p',{style:{fontSize:16,fontStyle:'italic',color:'var(--tx2)',lineHeight:1.7}},'"'+c.notaCata+'"')
+        );
+      }),
+      frmCata?h(FormCata,{vinos:v.vinos,onSave:function(d){updV(function(vv){return Object.assign({},vv,{catas:(vv.catas||[]).concat([d])});});setFrmCata(false);},onCancel:function(){setFrmCata(false);}})
+              :h('button',{className:'bg',style:{width:'100%',padding:10,marginTop:8},onClick:function(){setFrmCata(true);}},'+ Añadir cata')
+    );
+  }
+
+  return h('div',{className:'fade'},
+    h('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},
+      h('button',{className:'bo',style:{padding:'4px 9px',fontSize:11},onClick:function(){ctx.setOpenV(null);}},'◀ Añadas'),
+      h('span',{style:{fontFamily:'serif',fontSize:20,color:'var(--gold)'}},v.ano),
+      h('span',{style:{fontSize:10,color:'var(--tx3)',marginLeft:4}},(v.vinos||[]).length+' vinos')
+    ),
+    h('div',{style:{display:'flex',overflowX:'auto',gap:3,marginBottom:16,paddingBottom:10,borderBottom:'1px solid var(--br2)'}},
+      A_TABS.map(function(t){return h('button',{key:t.id,className:'vtb '+(ctx.vTab===t.id?'a':''),onClick:function(){ctx.setVTab(t.id);}},t.l);})
+    ),
+    tabContent
+  );
+}
+
+function PgVendimias() {
+  var ctx = useApp();
+  if(ctx.openV!==null) return h(PgAnadaFicha,null);
+  return h(PgAnadaList,null);
+}
+
+// ─── PgFaenas ─────────────────────────────────────────────────────────
+function PgFaenas() {
+  var ctx = useApp();
+  var s1=useState(2026), fYear=s1[0], setFYear=s1[1];
+  var s2=useState(false), addF=s2[0], setAddF=s2[1];
+  var s3=useState({nombre:'',emoji:'',mes:'Enero',desc:''}), nF=s3[0], setNF=s3[1];
+  var mesAct=MESES[new Date().getMonth()];
+  var fSort=ctx.faenas.filter(function(f){return f.ano===fYear;}).slice().sort(function(a,b){return MORD[a.mes]-MORD[b.mes]||a.id-b.id;});
+  var porMes={};
+  MESES.forEach(function(m){var fs=fSort.filter(function(f){return f.mes===m;});if(fs.length)porMes[m]=fs;});
+  function sf(id,k,val){ctx.setFaenas(function(p){return p.map(function(x){return x.id===id?Object.assign({},x,{[k]:val}):x;});});}
+  function copiar(){var ant=ctx.faenas.filter(function(f){return f.ano===fYear-1;});if(!ant.length){alert('No hay faenas del '+(fYear-1));return;}ctx.setFaenas(function(p){return p.concat(ant.map(function(f){return Object.assign({},f,{id:Date.now()+Math.random(),ano:fYear,dia:''});}));});}
+
+  return h('div',{className:'fade'},
+    h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}},
+      h('h2',{style:Object.assign({},S.H2,{marginBottom:0})},'Faenas'),
+      h('div',{style:{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}},
+        h('button',{className:'bo',style:{padding:'5px 10px'},onClick:function(){setFYear(function(y){return y-1;});}}, '◀'),
+        h('span',{style:{fontFamily:'serif',fontSize:24,color:'var(--gold)',minWidth:48,textAlign:'center'}},fYear),
+        h('button',{className:'bo',style:{padding:'5px 10px'},onClick:function(){setFYear(function(y){return y+1;});}}, '▶')
+      )
+    ),
+    fSort.length===0?h('div',{style:Object.assign({},S.C,{textAlign:'center',padding:24,marginBottom:16})},
+      h('p',{style:{fontSize:13,color:'var(--tx2)',marginBottom:14}},'No hay faenas para '+fYear+'.'),
+      h('div',{style:{display:'flex',gap:8,justifyContent:'center'}},
+        h('button',{className:'bg',onClick:copiar},'Copiar de '+(fYear-1)),
+        h('button',{className:'bo',onClick:function(){setAddF(true);}},'+ Crear')
+      )
+    ):h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}},
+      h('p',{style:S.DSC},'Toca un socio para confirmar asistencia'),
+      h('div',{style:{display:'flex',gap:6}},
+        h('button',{className:'bo',style:{fontSize:9},onClick:copiar},'Copiar de '+(fYear-1)),
+        h('button',{className:'bg',onClick:function(){setAddF(!addF);}},'+ Añadir')
+      )
+    ),
+    addF?h('div',{style:Object.assign({},S.DB,{borderRadius:7,borderTop:'1px solid var(--br)',marginBottom:12,padding:14})},
+      h('p',{style:Object.assign({},S.H3,{marginBottom:12})},'Nueva faena · '+fYear),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 52px 1fr',gap:8}},
+        h('input',{placeholder:'Nombre',value:nF.nombre,onChange:function(e){setNF(function(p){return Object.assign({},p,{nombre:e.target.value});});}}),
+        h('input',{placeholder:'🍇',value:nF.emoji,style:{textAlign:'center'},onChange:function(e){setNF(function(p){return Object.assign({},p,{emoji:e.target.value});});}}),
+        h('select',{value:nF.mes,onChange:function(e){setNF(function(p){return Object.assign({},p,{mes:e.target.value});});}},MESES.map(function(m){return h('option',{key:m},m);}))
+      ),
+      h('textarea',{rows:2,placeholder:'Descripción',style:{marginTop:8},value:nF.desc,onChange:function(e){setNF(function(p){return Object.assign({},p,{desc:e.target.value});});}}),
+      h('div',{style:{display:'flex',gap:8,marginTop:10}},
+        h('button',{className:'bg',onClick:function(){if(!nF.nombre)return;ctx.setFaenas(function(p){return p.concat([{id:Date.now(),ano:fYear,nombre:nF.nombre,emoji:nF.emoji,mes:nF.mes,desc:nF.desc,dia:''}]);});setNF({nombre:'',emoji:'',mes:'Enero',desc:''});setAddF(false);}},'Guardar'),
+        h('button',{className:'bo',onClick:function(){setAddF(false);}},'Cancelar')
+      )
+    ):null,
+    Object.keys(porMes).map(function(mes){
+      return h('div',{key:mes,style:{marginBottom:22}},
+        h('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:10,paddingBottom:7,borderBottom:'1px solid var(--br2)'}},
+          h('span',{style:{fontFamily:'Montserrat',fontSize:14,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:mes===mesAct?'var(--gold)':'var(--tx2)'}},mes),
+          mes===mesAct?h('span',{style:S.MB},'MES ACTUAL'):null
+        ),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:9}},
+          porMes[mes].map(function(f){
+            var conf=ctx.socios.filter(function(sc){return ctx.ga(f.id,sc.id)==='si';}).length;
+            var dias=diasR(f.dia);
+            var dc=dias===null?'var(--tx3)':dias===0?'rgba(255,220,50,.95)':dias<0?'rgba(200,80,80,.7)':dias<=7?'rgba(255,150,50,.9)':dias<=30?'var(--gold)':'var(--tx3)';
+            return h('div',{key:f.id,style:S.C},
+              h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,marginBottom:10}},
+                h('div',{style:{flex:1}},
+                  h('div',{style:{display:'flex',alignItems:'center',gap:7,marginBottom:4,flexWrap:'wrap'}},
+                    h('span',{style:{fontSize:18}},f.emoji||'🔧'),
+                    h('span',{style:{fontFamily:'Montserrat',fontSize:13,fontWeight:700,color:'var(--tx)'}},f.nombre)
+                  ),
+                  h('p',{style:{fontSize:11,color:'var(--tx2)',lineHeight:1.5,marginBottom:8}},f.desc),
+                  h('div',{style:{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}},
+                    h('span',{style:{fontSize:10,fontWeight:600,color:'var(--gold)'}},'📅 Fecha:'),
+                    h(SD,{value:f.dia||'',save:function(val){sf(f.id,'dia',val);}}),
+                    dias!==null&&f.dia?h('span',{style:{fontSize:10,fontWeight:700,color:dc}},dias===0?'¡HOY!':dias<0?'Hace '+Math.abs(dias)+'d':dias===1?'Mañana':'En '+dias+'d'):null
+                  )
+                ),
+                h('div',{style:{textAlign:'center',background:'var(--g10)',border:'1px solid var(--g20)',borderRadius:5,padding:'7px 9px',flexShrink:0,minWidth:46}},
+                  h('p',{style:{fontFamily:'serif',fontSize:22,color:'var(--gold)',lineHeight:1}},conf),
+                  h('p',{style:{fontSize:9,color:'var(--tx3)',fontWeight:600}},'/'+ctx.socios.length)
+                )
+              ),
+              h(SocioBotones,{fid:f.id}),
+              h('div',{style:{display:'flex',justifyContent:'flex-end',marginTop:10}},
+                h('button',{className:'bd',onClick:function(){if(window.confirm('¿Eliminar '+f.nombre+'?'))ctx.setFaenas(function(p){return p.filter(function(x){return x.id!==f.id;});});}}, 'Eliminar')
+              )
+            );
+          })
+        )
+      );
+    })
+  );
+}
+
+// ─── PgSocios ─────────────────────────────────────────────────────────
+function PgSocios() {
+  var ctx = useApp();
+  var s1=useState(false), addS=s1[0], setAddS=s1[1];
+  var s2=useState({nombre:'',apodo:'',rol:'Socio'}), nS=s2[0], setNS=s2[1];
+  function ss(id,k,val){ctx.setSocios(function(p){return p.map(function(x){return x.id===id?Object.assign({},x,{[k]:val}):x;});});}
+  function handleFoto(sc){
+    var input=document.createElement('input');input.type='file';input.accept='image/*';
+    input.onchange=function(e){
+      var file=e.target.files[0];if(!file)return;
+      var reader=new FileReader();
+      reader.onload=function(ev){
+        var img=new Image();
+        img.onload=function(){
+          var canvas=document.createElement('canvas');
+          var size=180,ratio=Math.min(size/img.width,size/img.height);
+          canvas.width=Math.round(img.width*ratio);canvas.height=Math.round(img.height*ratio);
+          canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+          ss(sc.id,'foto',canvas.toDataURL('image/jpeg',0.8));
+        };img.src=ev.target.result;
+      };reader.readAsDataURL(file);
+    };input.click();
+  }
+
+  if(ctx.openSocio!==null){
+    var sc=ctx.socios.find(function(x){return x.id===ctx.openSocio;});
+    if(!sc)return null;
+    var edad=calcEdad(sc.fechaNacimiento);
+    return h('div',{className:'fade'},
+      h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16}},
+        h('button',{className:'bo',style:{padding:'5px 10px'},onClick:function(){ctx.setOpenSocio(null);}}, '◀'),
+        h('h2',{style:Object.assign({},S.H2,{marginBottom:0})},'Ficha')
+      ),
+      h('div',{style:Object.assign({},S.C,{marginBottom:12})},
+        h('div',{style:{display:'flex',alignItems:'flex-start',gap:14,marginBottom:16}},
+          h('div',{style:{position:'relative',flexShrink:0}},
+            h(Av,{nombre:sc.nombre,foto:sc.foto,size:80}),
+            h('button',{className:'be',style:{position:'absolute',bottom:-4,right:-4,padding:'3px 6px',fontSize:10},onClick:function(){handleFoto(sc);}},'📷')
+          ),
+          h('div',{style:{flex:1}},
+            h('p',{style:{fontFamily:'serif',fontSize:26,color:'var(--gold)'}},sc.nombre+(sc.apodo?' '+sc.apodo:'')),
+            h('p',{style:{fontSize:11,color:'var(--tx2)',textTransform:'uppercase',letterSpacing:'.08em'}},sc.rol),
+            edad!==null?h('p',{style:{fontSize:12,color:'var(--tx3)',marginTop:3}},edad+' años'):null
+          )
+        ),
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+          h('div',null,h('span',{style:S.LB},'Nombre'),h(SI,{value:sc.nombre,save:function(val){ss(sc.id,'nombre',val);}})),
+          h('div',null,h('span',{style:S.LB},'Apodo'),h(SI,{value:sc.apodo||'',save:function(val){ss(sc.id,'apodo',val);},placeholder:'(Padre)…'})),
+          h('div',{style:{gridColumn:'1/-1'}},h('span',{style:S.LB},'Nombre completo'),h(SI,{value:sc.nombreCompleto||'',save:function(val){ss(sc.id,'nombreCompleto',val);},placeholder:'Nombre y apellidos…'})),
+          h('div',null,h('span',{style:S.LB},'Fecha nacimiento'),h(SD,{value:sc.fechaNacimiento||'',save:function(val){ss(sc.id,'fechaNacimiento',val);}})),
+          h('div',null,h('span',{style:S.LB},'Pseudónimo'),h(SI,{value:sc.pseudonimo||'',save:function(val){ss(sc.id,'pseudonimo',val);},placeholder:'El bodeguero…'})),
+          h('div',{style:{gridColumn:'1/-1'}},h('span',{style:S.LB},'Valor que aporta'),h(ST,{value:sc.valorAporta||'',save:function(val){ss(sc.id,'valorAporta',val);},rows:3,placeholder:'Conocimientos, trabajo…'}))
+        )
+      ),
+      h('div',{style:{display:'flex',gap:8}},
+        h('button',{className:'bo',style:{flex:1},onClick:function(){ctx.setOpenSocio(null);}},'← Volver'),
+        h('button',{className:'bd',onClick:function(){if(window.confirm('¿Eliminar a '+sc.nombre+'?')){ctx.setSocios(function(p){return p.filter(function(x){return x.id!==sc.id;});});ctx.setOpenSocio(null);}}},'Eliminar')
+      )
+    );
+  }
+
+  return h('div',{className:'fade'},
+    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14,flexWrap:'wrap',gap:8}},
+      h('div',null,h('h2',{style:S.H2},'Socios'),h('p',{style:S.DSC},'Toca una ficha para ver y editar')),
+      h('button',{className:'bg',onClick:function(){setAddS(!addS);}},'+ Añadir')
+    ),
+    addS?h('div',{style:Object.assign({},S.DB,{borderRadius:7,borderTop:'1px solid var(--br)',marginBottom:12,padding:14})},
+      h('p',{style:Object.assign({},S.H3,{marginBottom:12})},'Nuevo socio'),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+        h('input',{placeholder:'Nombre',value:nS.nombre,onChange:function(e){setNS(function(p){return Object.assign({},p,{nombre:e.target.value});});}}),
+        h('input',{placeholder:'(Padre)…',value:nS.apodo,onChange:function(e){setNS(function(p){return Object.assign({},p,{apodo:e.target.value});}); }})
+      ),
+      h('div',{style:{display:'flex',gap:8,marginTop:10}},
+        h('button',{className:'bg',onClick:function(){if(!nS.nombre)return;ctx.setSocios(function(p){return p.concat([Object.assign({id:uid()},nS,{nombreCompleto:'',fechaNacimiento:'',pseudonimo:'',valorAporta:'',foto:''})]);});setNS({nombre:'',apodo:'',rol:'Socio'});setAddS(false);}},'Guardar'),
+        h('button',{className:'bo',onClick:function(){setAddS(false);}},'Cancelar')
+      )
+    ):null,
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}},
+      ctx.socios.map(function(sc){
+        var conf=ctx.faenas.filter(function(f){return ctx.ga(f.id,sc.id)==='si';}).length;
+        var pct=ctx.faenas.length>0?Math.round((conf/ctx.faenas.length)*100):0;
+        var edad=calcEdad(sc.fechaNacimiento);
+        return h('div',{key:sc.id,
+          style:{background:'var(--sur)',border:'1px solid var(--br)',borderRadius:7,padding:'18px 12px',textAlign:'center',cursor:'pointer'},
+          onClick:function(){ctx.setOpenSocio(sc.id);}
+        },
+          h('div',{style:{position:'relative',display:'inline-block',marginBottom:10}},
+            h(Av,{nombre:sc.nombre,foto:sc.foto,size:60}),
+            h('button',{className:'be',style:{position:'absolute',bottom:-2,right:-2,padding:'2px 5px',fontSize:10},onClick:function(e){e.stopPropagation();handleFoto(sc);}},'📷')
+          ),
+          h('p',{style:{fontFamily:'Montserrat',fontSize:14,fontWeight:700,color:'var(--tx)',marginBottom:1}},sc.nombre),
+          sc.apodo?h('p',{style:{fontSize:11,color:'var(--tx2)',marginBottom:1}},sc.apodo):null,
+          h('p',{style:{fontSize:10,fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',color:'var(--gold)',marginBottom:2}},sc.rol),
+          edad!==null?h('p',{style:{fontSize:10,color:'var(--tx3)',marginBottom:6}},edad+' años'):null,
+          h('div',{style:{display:'flex',justifyContent:'space-around',borderTop:'1px solid var(--br2)',paddingTop:10}},
+            h('div',null,h('p',{style:{fontFamily:'serif',fontSize:20,color:'var(--gold)'}},conf),h('p',{style:{fontSize:9,fontWeight:600,color:'var(--tx3)',textTransform:'uppercase'}},'Faenas')),
+            h('div',null,h('p',{style:{fontFamily:'serif',fontSize:20,color:'var(--gold)'}},pct+'%'),h('p',{style:{fontSize:9,fontWeight:600,color:'var(--tx3)',textTransform:'uppercase'}},'Part.'))
+          )
+        );
+      })
+    )
+  );
+}
+
+// ─── PgEconomia ────────────────────────────────────────────────────────
+function PgEconomia() {
+  var ctx = useApp();
+  var s1=useState(0), ecoAno=s1[0], setEcoAno=s1[1];
+  var s2=useState(false), showGasto=s2[0], setShowGasto=s2[1];
+  var s3=useState(function(){return load('o8_bot',{});}), botAnual=s3[0], setBotAnual=s3[1];
+  useEffect(function(){localStorage.setItem('o8_bot',JSON.stringify(botAnual));},[botAnual]);
+  var gastosVis=ecoAno===0?ctx.gastos:ctx.gastos.filter(function(g){return String(g.ano)===String(ecoAno);});
+  var totalVis=gastosVis.reduce(function(s,g){return s+(+g.importe||0);},0);
+  var totalGeneral=ctx.gastos.reduce(function(s,g){return s+(+g.importe||0);},0);
+  var nSocios=ctx.socios.length||6;
+  var gastosAno=ctx.gastos.filter(function(g){return String(g.ano)===String(ecoAno);});
+  var totalAno=gastosAno.reduce(function(s,g){return s+(+g.importe||0);},0);
+  var botellas=ecoAno>0?(+botAnual[String(ecoAno)]||0):0;
+  var costeXBot=botellas>0?(totalAno/botellas).toFixed(2):null;
+  var botXSoc=botellas>0?(botellas/nSocios).toFixed(1):null;
+  var costeXSoc=costeXBot&&botXSoc?(+costeXBot*+botXSoc).toFixed(2):null;
+  var anoActual=new Date().getFullYear();
+  return h('div',{className:'fade'},
+    h('h2',{style:S.H2},'Economía'),
+    h('p',{style:S.DSC},'Gastos · Coste por botella y socio'),
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:22}},
+      [['💰',totalGeneral.toFixed(2)+'€','Total'],['📆',ctx.gastos.filter(function(g){return String(g.ano)===String(anoActual);}).reduce(function(s,g){return s+(+g.importe||0);},0).toFixed(2)+'€','Año actual'],['🍾',String(ctx.gastos.length),'Apuntes']].map(function(item){
+        return h('div',{key:item[2],style:Object.assign({},S.C,{textAlign:'center',padding:'12px 8px'})},
+          h('p',{style:{fontSize:20,marginBottom:3}},item[0]),
+          h('p',{style:{fontFamily:'serif',fontSize:18,color:'var(--gold)',lineHeight:1}},item[1]),
+          h('p',{style:{fontSize:9,fontWeight:600,letterSpacing:'.07em',textTransform:'uppercase',color:'var(--tx3)',marginTop:3}},item[2])
+        );
+      })
+    ),
+    h('p',{style:Object.assign({},S.H3,{marginBottom:8})},'Filtrar por añada'),
+    h('div',{style:{display:'flex',gap:5,flexWrap:'wrap',marginBottom:16}},
+      [0].concat(ANOS).map(function(a){
+        return h('button',{key:a,className:'vtb '+(ecoAno===a?'a':''),style:{padding:'6px 10px',fontSize:10},onClick:function(){setEcoAno(a);}},a===0?'Todos':a);
+      })
+    ),
+    ecoAno>0?h('div',{style:Object.assign({},S.C,{background:'rgba(232,168,32,.06)',border:'1px solid var(--g20)',marginBottom:16})},
+      h('p',{style:Object.assign({},S.H3,{marginBottom:14})},'Cálculo · '+ecoAno),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}},
+        h('div',{style:S.C},h('span',{style:S.LB},'Total gastos'),h('p',{style:{fontFamily:'serif',fontSize:28,color:'var(--gold)'}},totalAno.toFixed(2)+'€')),
+        h('div',{style:S.C},
+          h('span',{style:S.LB},'Botellas llenadas'),
+          h(SN,{value:botAnual[String(ecoAno)]||'',save:function(val){setBotAnual(function(p){var r=Object.assign({},p);r[String(ecoAno)]=val;return r;});},placeholder:'0'}),
+          h('p',{style:{fontSize:10,color:'var(--tx3)',marginTop:4}},'Introduce el número')
+        )
+      ),
+      botellas>0&&costeXBot?h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}},
+        h('div',{style:Object.assign({},S.C,{textAlign:'center'})},h('span',{style:S.LB},'Botellas/socio'),h('p',{style:{fontFamily:'serif',fontSize:26,color:'var(--tx)'}},botXSoc),h('p',{style:{fontSize:9,color:'var(--tx3)'}},' socios')),
+        h('div',{style:Object.assign({},S.C,{textAlign:'center'})},h('span',{style:S.LB},'Coste/botella'),h('p',{style:{fontFamily:'serif',fontSize:26,color:'var(--gold)'}},costeXBot+'€')),
+        h('div',{style:Object.assign({},S.C,{textAlign:'center',border:'1px solid var(--g35)'})},h('span',{style:S.LB},'Coste/socio'),h('p',{style:{fontFamily:'serif',fontSize:26,color:'var(--gold)'}},costeXSoc+'€'))
+      ):h('p',{style:{fontSize:12,color:'var(--tx3)',textAlign:'center',padding:'8px 0'}},'Introduce botellas para calcular.')
+    ):null,
+    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10,flexWrap:'wrap',gap:8}},
+      h('div',null,
+        h('p',{style:Object.assign({},S.H3,{marginBottom:2})},ecoAno>0?'Gastos '+ecoAno:'Todos los gastos'),
+        h('p',{style:{fontSize:11,color:'var(--tx2)'}},gastosVis.length+' apuntes · ',h('span',{style:{color:'var(--gold)',fontWeight:700}},totalVis.toFixed(2)+'€'))
+      ),
+      h('button',{className:'bg',onClick:function(){setShowGasto(!showGasto);}},'+ Añadir gasto')
+    ),
+    showGasto?h(FormGasto,{anoDefault:ecoAno>0?ecoAno:'',onSave:function(d){ctx.setGastos(function(p){return p.concat([d]);});setShowGasto(false);},onCancel:function(){setShowGasto(false);}}):null,
+    gastosVis.slice().sort(function(a,b){var da=parseDate(a.fecha),db=parseDate(b.fecha);if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return db-da;}).map(function(g){
+      var cat=CATS_ECO.find(function(c){return c.id===g.categoria;})||CATS_ECO[CATS_ECO.length-1];
+      return h('div',{key:g.id,style:{background:'var(--bg2)',border:'1px solid var(--br2)',borderRadius:5,padding:'10px 12px',marginBottom:6}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8}},
+          h('div',{style:{flex:1}},
+            h('div',{style:{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:4}},
+              h('span',{style:{fontSize:15}},cat.emoji),
+              h('span',{style:{fontSize:12,fontWeight:600}},g.concepto),
+              h('span',{style:Object.assign({},S.TG,{fontSize:9})},cat.label),
+              g.ano?h('span',{style:Object.assign({},S.MB,{fontSize:9})},g.ano):null
+            ),
+            g.fecha?h('span',{style:{fontSize:10,color:'var(--tx3)'}},'📅 '+showDate(g.fecha)):null,
+            g.notas?h('span',{style:{fontSize:10,color:'var(--tx2)',marginLeft:8}},' · '+g.notas):null
+          ),
+          h('div',{style:{textAlign:'right',flexShrink:0}},
+            h('p',{style:{fontFamily:'serif',fontSize:20,color:'var(--gold)'}},( +g.importe).toFixed(2)+'€'),
+            h('button',{className:'bd',style:{padding:'2px 7px',fontSize:9,marginTop:4},onClick:function(){if(window.confirm('¿Eliminar?'))ctx.setGastos(function(p){return p.filter(function(x){return x.id!==g.id;});});}},'✕')
+          )
+        )
+      );
+    }),
+    gastosVis.length>0?h('div',{style:Object.assign({},S.C,{background:'rgba(232,168,32,.06)',marginTop:4})},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        h('span',{style:{fontFamily:'Montserrat',fontSize:11,fontWeight:700,letterSpacing:'.08em',textTransform:'uppercase',color:'var(--tx2)'}},'Total '+(ecoAno>0?ecoAno:'general')),
+        h('span',{style:{fontFamily:'serif',fontSize:28,color:'var(--gold)'}},totalVis.toFixed(2)+' €')
+      )
+    ):null
+  );
+}
+
+// ─── PgInventario ──────────────────────────────────────────────────────
+function PgInventario() {
+  var ctx = useApp();
+  var s1=useState(null), openCat=s1[0], setOpenCat=s1[1];
+  var s2=useState(null), addItem=s2[0], setAddItem=s2[1];
+  var s3=useState({nombre:'',unidades:''}), nItem=s3[0], setNItem=s3[1];
+  var s4=useState(null), editItem=s4[0], setEditItem=s4[1];
+  var total=ctx.invCat.reduce(function(s,c){return s+c.items.length;},0);
+  return h('div',{className:'fade'},
+    h('h2',{style:S.H2},'Inventario'),
+    h('p',{style:S.DSC},'Material · '+total+' artículos'),
+    ctx.invCat.map(function(cat){
+      var isO=openCat===cat.id;
+      return h('div',{key:cat.id,style:{marginBottom:isO?0:10}},
+        h('div',{style:Object.assign({},S.C,{cursor:'pointer',borderRadius:isO?'7px 7px 0 0':7}),onClick:function(){setOpenCat(isO?null:cat.id);}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('span',{style:{fontSize:22}},cat.emoji),h('span',{style:{fontFamily:'Montserrat',fontSize:14,fontWeight:700,color:'var(--tx)'}},cat.nombre)),
+            h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('span',{style:{fontFamily:'serif',fontSize:20,color:'var(--gold)'}},cat.items.length),h('span',{style:{fontSize:10,color:'var(--gold)'}},isO?'▲':'▼'))
+          )
+        ),
+        isO?h('div',{style:S.DB},
+          cat.items.map(function(it){
+            var isE=editItem&&editItem.cid===cat.id&&editItem.iid===it.id;
+            return h('div',{key:it.id,style:{background:'var(--bg2)',border:'1px solid var(--br2)',borderRadius:5,padding:'9px 11px',display:'flex',alignItems:'center',gap:8,marginBottom:6}},
+              isE?[
+                h(SI,{key:'n',value:it.nombre,save:function(val){ctx.setInvCat(function(p){return p.map(function(c){return c.id===cat.id?Object.assign({},c,{items:c.items.map(function(i){return i.id===it.id?Object.assign({},i,{nombre:val}):i;})}):c;});});},style:{flex:2}}),
+                h(SI,{key:'u',value:it.unidades,save:function(val){ctx.setInvCat(function(p){return p.map(function(c){return c.id===cat.id?Object.assign({},c,{items:c.items.map(function(i){return i.id===it.id?Object.assign({},i,{unidades:val}):i;})}):c;});});},style:{flex:1},placeholder:'Uds.'}),
+                h('button',{key:'ok',className:'be',onClick:function(){setEditItem(null);}},'✓')
+              ]:[
+                h('div',{key:'n',style:{flex:1}},h('span',{style:{fontSize:12,fontWeight:600}},it.nombre)),
+                h('span',{key:'u',style:{fontFamily:'serif',fontSize:20,color:'var(--gold)'}},it.unidades),
+                h('span',{key:'ul',style:{fontSize:10,color:'var(--tx3)',marginLeft:4}},'uds.'),
+                h('button',{key:'e',className:'be',style:{padding:'3px 8px',fontSize:10},onClick:function(){setEditItem({cid:cat.id,iid:it.id});}},'✏️'),
+                h('button',{key:'d',className:'bd',style:{padding:'3px 8px',fontSize:10},onClick:function(){ctx.setInvCat(function(p){return p.map(function(c){return c.id===cat.id?Object.assign({},c,{items:c.items.filter(function(i){return i.id!==it.id;})}):c;});});}},'✕')
+              ]
+            );
+          }),
+          addItem===cat.id?h('div',{style:{background:'var(--bg2)',border:'1px solid var(--g20)',borderRadius:6,padding:12}},
+            h('div',{style:{display:'grid',gridTemplateColumns:'2fr 1fr',gap:8,marginBottom:8}},
+              h(SI,{value:nItem.nombre,save:function(val){setNItem(function(p){return Object.assign({},p,{nombre:val});});},placeholder:'Material'}),
+              h(SI,{value:nItem.unidades,save:function(val){setNItem(function(p){return Object.assign({},p,{unidades:val});});},placeholder:'Uds.'})
+            ),
+            h('div',{style:{display:'flex',gap:8}},
+              h('button',{className:'bg',onClick:function(){if(!nItem.nombre)return;ctx.setInvCat(function(p){return p.map(function(c){return c.id===cat.id?Object.assign({},c,{items:c.items.concat([Object.assign({id:uid()},nItem)])}):c;});});setNItem({nombre:'',unidades:''});setAddItem(null);}},'Guardar'),
+              h('button',{className:'bo',onClick:function(){setAddItem(null);}},'Cancelar')
+            )
+          ):h('button',{className:'bg',style:{width:'100%',padding:9},onClick:function(){setAddItem(cat.id);}},'+ Añadir artículo')
+        ):null
+      );
+    })
+  );
+}
+
+// ─── PgIdiosincrasia ───────────────────────────────────────────────────
+function PgIdiosincrasia() {
+  var bloques=[
+    {emoji:'🍷',titulo:'Nuestro origen',texto:'Somos la familia Oriol al completo: padres, hijos y, con el paso del tiempo, consortes y nietos a quienes hemos tenido el placer de contagiar nuestro amor por el vino. Siempre hemos compartido este líquido elemento alrededor de una mesa.'},
+    {emoji:'🏚️',titulo:'El nacimiento de la bodega',texto:'En 2020 nació Bodega Orioles con una intención clara y apasionada: crear el mejor vino que seamos capaces de bebernos. Sin más pretensión que la del disfrute y el aprendizaje colectivo.'},
+    {emoji:'🌱',titulo:'Aprendizaje y progreso',texto:'Nada es sencillo cuando se empieza de cero. Pero la familia que somos, unida, no encuentra límite que no pueda superar con tiempo, dedicación y muchas ganas. Cada vendimia nos enseña algo nuevo.'},
+    {emoji:'❤️',titulo:'Más que vino',texto:'Esta actividad sin ánimo de lucro no ha hecho otra cosa que fortalecer nuestros lazos familiares. Quebracántaros no es solo el nombre de nuestro vino: es el nombre de lo que hacemos cuando estamos juntos.'}
+  ];
+  return h('div',{className:'fade'},
+    h('div',{style:{textAlign:'center',padding:'28px 0 20px',borderBottom:'1px solid var(--br2)',marginBottom:28}},
+      h(OriLogo,{size:52}),
+      h('h1',{style:{fontFamily:'Montserrat',fontSize:22,fontWeight:700,letterSpacing:'.22em',textTransform:'uppercase',color:'var(--gold)',marginTop:14}},'QUIÉNES SOMOS'),
+      h('p',{style:{fontFamily:'Montserrat',fontSize:10,letterSpacing:'.16em',textTransform:'uppercase',color:'var(--tx3)',marginTop:6}},'Familia Oriol · Bodega Quebracántaros · Valdejalón')
+    ),
+    h('div',{style:{maxWidth:640,margin:'0 auto'}},
+      bloques.map(function(b){
+        return h('div',{key:b.titulo,style:{marginBottom:24}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:10}},
+            h('span',{style:{fontSize:22}},b.emoji),
+            h('h3',{style:{fontFamily:'Montserrat',fontSize:13,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--gold)'}},b.titulo)
+          ),
+          h('p',{style:{fontFamily:'serif',fontSize:17,color:'var(--tx2)',lineHeight:1.8,paddingLeft:32}},b.texto)
+        );
+      })
+    )
+  );
+}
+
+// ─── PgConfig ──────────────────────────────────────────────────────────
+function PgConfig() {
+  var ctx = useApp();
+  var sMsg = useState(null); var importMsg=sMsg[0],setImportMsg=sMsg[1];
+  var sErr = useState('');   var importErr=sErr[0],setImportErr=sErr[1];
+
+  function exportarDatos() {
+    var data = {
+      version:1, fecha:new Date().toISOString(),
+      socios:ctx.socios, vendimias:ctx.vends, faenas:ctx.faenas,
+      asistencia:ctx.asist, inventario:ctx.invCat, gastos:ctx.gastos,
+      bodega:ctx.bodega, lema:ctx.lema
+    };
+    var blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href   = url;
+    a.download = 'orioles-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+
+  function importarDatos() {
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json,application/json';
+    input.onchange = function(e) {
+      var file = e.target.files[0]; if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          var d = JSON.parse(ev.target.result);
+          if(!d||typeof d!=='object') throw new Error('Formato no valido');
+          if(!window.confirm('Importar datos? Se sobreescribiran los actuales.')) return;
+          if(Array.isArray(d.socios))    ctx.setSocios(d.socios);
+          if(Array.isArray(d.vendimias)) ctx.setVends(migrateVends(d.vendimias));
+          if(Array.isArray(d.faenas))    ctx.setFaenas(d.faenas);
+          if(d.asistencia&&typeof d.asistencia==='object') ctx.setAsist(d.asistencia);
+          if(Array.isArray(d.inventario)) ctx.setInvCat(d.inventario);
+          if(Array.isArray(d.gastos))    ctx.setGastos(d.gastos);
+          if(d.bodega) ctx.setBodega(d.bodega);
+          if(d.lema)   ctx.setLema(d.lema);
+          setImportMsg('Datos importados correctamente ' + new Date().toLocaleString('es-ES'));
+          setImportErr('');
+        } catch(err) {
+          setImportErr('Error al leer el archivo: '+err.message);
+          setImportMsg(null);
+        }
+      };
+      reader.readAsText(file,'utf-8');
+    };
+    input.click();
+  }
+
+  return h('div',{className:'fade'},
+    h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:20,paddingBottom:14,borderBottom:'1px solid var(--br2)'}},
+      h('span',{style:{fontSize:26}},'⚙️'),
+      h('div',null,
+        h('h2',{style:Object.assign({},S.H2,{marginBottom:2})},'Configuracion'),
+        h('p',{style:{fontSize:11,color:'var(--gold)',fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}},'Solo visible en modo edicion')
+      )
+    ),
+    h('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+
+      h('div',{style:S.C},
+        h('p',{style:Object.assign({},S.H3,{marginBottom:10})},'Bodega'),
+        h('div',{style:{display:'grid',gap:10}},
+          h('div',null,h('span',{style:S.LB},'Nombre'),h(SI,{value:ctx.bodega,save:ctx.setBodega,placeholder:'Bodega Orioles'})),
+          h('div',null,h('span',{style:S.LB},'Lema'),h(SI,{value:ctx.lema,save:ctx.setLema,placeholder:'Quebracantaros · Valdejalon'}))
+        )
+      ),
+
+      h('div',{style:S.C},
+        h('p',{style:Object.assign({},S.H3,{marginBottom:6})},'🔐 PIN de edicion'),
+        h('p',{style:{fontSize:12,color:'var(--tx2)',marginBottom:10,lineHeight:1.6}},'Solo quien conozca el PIN puede editar la app.'),
+        h('input',{className:'lbtn',type:'password',defaultValue:ctx.pin,placeholder:'PIN',
+          style:{marginBottom:6,pointerEvents:'auto',opacity:1,borderColor:'var(--br)'},
+          onBlur:function(e){if(e.target.value)ctx.setPin(e.target.value);}}),
+        h('p',{style:{fontSize:11,color:'var(--gold)'}},'🔓 Modo edicion activo · PIN: '+ctx.pin)
+      ),
+
+      h('div',{style:S.C},
+        h('p',{style:Object.assign({},S.H3,{marginBottom:6})},'⬇ Exportar datos'),
+        h('p',{style:{fontSize:12,color:'var(--tx2)',marginBottom:12,lineHeight:1.6}},'Descarga todos los datos en un archivo JSON. Guárdalo como copia de seguridad o para pasar los datos a otro dispositivo.'),
+        h('div',{style:{background:'var(--bg2)',border:'1px solid var(--br2)',borderRadius:5,padding:'10px 12px',marginBottom:12,fontFamily:'monospace',fontSize:10,color:'var(--tx3)',lineHeight:1.8}},
+          '{ "version": 1,', h('br',null),
+          '  "socios": [...],', h('br',null),
+          '  "vendimias": [...],', h('br',null),
+          '  "faenas": [...], "gastos": [...] }'
+        ),
+        h('button',{className:'bg',style:{width:'100%',padding:13},onClick:exportarDatos},'⬇  Descargar backup JSON')
+      ),
+
+      h('div',{style:S.C},
+        h('p',{style:Object.assign({},S.H3,{marginBottom:6})},'⬆ Importar datos'),
+        h('p',{style:{fontSize:12,color:'var(--tx2)',marginBottom:10,lineHeight:1.6}},'Carga un JSON exportado previamente. Los datos actuales seran reemplazados.'),
+        h('div',{style:{background:'rgba(180,40,40,.08)',border:'1px solid rgba(180,40,40,.2)',borderRadius:5,padding:'9px 12px',marginBottom:12}},
+          h('p',{style:{fontSize:11,color:'rgba(220,80,80,.9)',fontWeight:600}},'Atencion: esta accion sobreescribe todos los datos actuales.')
+        ),
+        importMsg?h('div',{style:{background:'rgba(40,140,60,.12)',border:'1px solid rgba(40,140,60,.25)',borderRadius:5,padding:'9px 12px',marginBottom:10}},
+          h('p',{style:{fontSize:12,color:'rgba(80,200,100,.9)',fontWeight:600}},'OK: '+importMsg)
+        ):null,
+        importErr?h('div',{style:{background:'rgba(180,40,40,.12)',border:'1px solid rgba(180,40,40,.25)',borderRadius:5,padding:'9px 12px',marginBottom:10}},
+          h('p',{style:{fontSize:12,color:'rgba(220,80,80,.9)',fontWeight:600}},importErr)
+        ):null,
+        h('button',{className:'bo',style:{width:'100%',padding:13,borderColor:'var(--g20)',color:'var(--gold)'},onClick:importarDatos},'⬆  Seleccionar archivo JSON para importar')
+      )
+    )
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────
+function App() {
+  var s1=useState('inicio'), tab=s1[0], setTab=s1[1];
+  var s2=useState(function(){return load('o8_s',SOCIOS0).map(function(s){return Object.assign({nombreCompleto:'',fechaNacimiento:'',pseudonimo:'',valorAporta:'',foto:''},s);});}), socios=s2[0], setSocios=s2[1];
+  var s3=useState(function(){return migrateVends(load('o8_v',null));}), vends=s3[0], setVends=s3[1];
+  var s4=useState(function(){return load('o8_f',FAENAS0).map(function(x){return Object.assign({ano:2026},x);});}), faenas=s4[0], setFaenas=s4[1];
+  var s5=useState(function(){return load('o8_a',{});}), asist=s5[0], setAsist=s5[1];
+  var s6=useState(function(){return load('o8_ic',INVC0);}), invCat=s6[0], setInvCat=s6[1];
+  var s7=useState(function(){return load('o8_g',[]);}), gastos=s7[0], setGastos=s7[1];
+  var s8=useState(function(){return load('o8_b','Bodega Orioles');}), bodega=s8[0], setBodega=s8[1];
+  var s9=useState(function(){return load('o8_l','Quebracántaros · Valdejalón');}), lema=s9[0], setLema=s9[1];
+  var s10=useState(false), editMode=s10[0], setEditMode=s10[1];
+  var s11=useState(function(){return load('o8_pin','1234');}), pin=s11[0], setPin=s11[1];
+  var s12=useState(null), openV=s12[0], setOpenV=s12[1];
+  var s13=useState('general'), vTab=s13[0], setVTab=s13[1];
+  var s14=useState(null), openSocio=s14[0], setOpenSocio=s14[1];
+
+  useEffect(function(){localStorage.setItem('o8_s',JSON.stringify(socios));},[socios]);
+  useEffect(function(){localStorage.setItem('o8_v',JSON.stringify(vends));},[vends]);
+  useEffect(function(){localStorage.setItem('o8_f',JSON.stringify(faenas));},[faenas]);
+  useEffect(function(){localStorage.setItem('o8_a',JSON.stringify(asist));},[asist]);
+  useEffect(function(){localStorage.setItem('o8_ic',JSON.stringify(invCat));},[invCat]);
+  useEffect(function(){localStorage.setItem('o8_g',JSON.stringify(gastos));},[gastos]);
+  useEffect(function(){localStorage.setItem('o8_b',JSON.stringify(bodega));},[bodega]);
+  useEffect(function(){localStorage.setItem('o8_l',JSON.stringify(lema));},[lema]);
+  useEffect(function(){localStorage.setItem('o8_pin',JSON.stringify(pin));},[pin]);
+  useEffect(function(){document.body.classList.toggle('locked',!editMode);return function(){document.body.classList.remove('locked');};},[editMode]);
+
+  function ga(fid,sid){return asist[fid+'_'+sid]||'';}
+  function ta(fid,sid){var k=fid+'_'+sid;setAsist(function(p){var r=Object.assign({},p);r[k]=NEXT[p[k]||''];return r;});}
+  function handleLock(){
+    if(editMode){setEditMode(false);if(tab==='config')setTab('inicio');}
+    else{var p=window.prompt('Introduce el PIN de edición:');if(p===null)return;if(p===pin)setEditMode(true);else alert('PIN incorrecto.');}
+  }
+
+  var ctx={tab:tab,setTab:setTab,socios:socios,setSocios:setSocios,vends:vends,setVends:setVends,faenas:faenas,setFaenas:setFaenas,asist:asist,setAsist:setAsist,invCat:invCat,setInvCat:setInvCat,gastos:gastos,setGastos:setGastos,bodega:bodega,setBodega:setBodega,lema:lema,setLema:setLema,editMode:editMode,setEditMode:setEditMode,pin:pin,setPin:setPin,openV:openV,setOpenV:setOpenV,vTab:vTab,setVTab:setVTab,openSocio:openSocio,setOpenSocio:setOpenSocio,ga:ga,ta:ta};
+
+  var TABS=[{id:'inicio',l:'Inicio'},{id:'vendimias',l:'Vendimias'},{id:'faenas',l:'Faenas'},{id:'inventario',l:'Inventario'},{id:'economia',l:'Economía'},{id:'socios',l:'Socios'},{id:'idiosincrasia',l:'Idiosincrasia'},{id:'config',l:'⚙️ Config',editOnly:true}];
+
+  var pageMap={inicio:PgInicio,vendimias:PgVendimias,faenas:PgFaenas,inventario:PgInventario,economia:PgEconomia,socios:PgSocios,idiosincrasia:PgIdiosincrasia,config:PgConfig};
+
+  return h(Ctx.Provider,{value:ctx},
+    h('div',{style:{minHeight:'100vh',background:'var(--bg)'}},
+      h('header',{style:{background:'#0D0D0D',borderBottom:'1px solid rgba(232,168,32,.14)',padding:'11px 16px',position:'sticky',top:0,zIndex:50}},
+        h('div',{style:{display:'flex',alignItems:'center',gap:12,maxWidth:820,margin:'0 auto'}},
+          h(OriLogo,{size:30}),
+          h('div',null,
+            h('h1',{style:{fontFamily:'Montserrat',fontSize:16,fontWeight:700,letterSpacing:'.22em',textTransform:'uppercase',color:'var(--gold)',lineHeight:1}},'ORIOLES'),
+            h('p',{style:{fontSize:9,fontWeight:500,letterSpacing:'.14em',textTransform:'uppercase',color:'var(--tx2)',marginTop:2}},lema)
+          ),
+          h('button',{className:'lbtn',onClick:handleLock,style:{marginLeft:'auto',background:editMode?'var(--g10)':'transparent',border:'1px solid '+(editMode?'var(--g35)':'var(--br2)'),borderRadius:6,padding:'6px 10px',cursor:'pointer',display:'flex',alignItems:'center',gap:5,flexShrink:0}},
+            h('span',{style:{fontSize:16}},editMode?'🔓':'🔒'),
+            h('span',{style:{fontFamily:'Montserrat',fontSize:9,fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase',color:editMode?'var(--gold)':'var(--tx3)'}},editMode?'Editando':'Ver')
+          )
+        )
+      ),
+      h('nav',{style:{display:'flex',overflowX:'auto',gap:2,padding:'5px 10px',borderBottom:'1px solid var(--br2)',background:'#111',position:'sticky',top:53,zIndex:49}},
+        TABS.filter(function(t){return !t.editOnly||editMode;}).map(function(t){return h('button',{key:t.id,className:'tb '+(tab===t.id?'a':''),onClick:function(){setTab(t.id);}},t.l);})
+      ),
+      h('main',{style:{padding:'20px 14px 64px',maxWidth:820,margin:'0 auto'}},
+        pageMap[tab]?h(pageMap[tab],null):null
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App,null));
+
+})();
+</script>
+</body>
+</html>
